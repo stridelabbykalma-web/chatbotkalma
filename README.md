@@ -105,6 +105,7 @@ El bot solo sabe lo que pongas aquí. Lo que falte lo deriva al equipo: nunca lo
 - [ ] Hacer una reserva de prueba real y comprobar que llega la confirmación con el enlace de anular (criterio 5)
 
 **Legal**
+- [ ] El bot pregunta por la molestia (zona, desde cuándo, cuándo aparece, actividad) para orientar el servicio: eso son datos de salud (art. 9 RGPD). El aviso pide consentimiento explícito y el bot no pregunta enfermedades, diagnósticos ni medicación, pero hay que validarlo con el consultor
 - [ ] Añadir el chatbot al registro de actividades de tratamiento y a la política de privacidad
 - [ ] DPA con Cloudflare, Anthropic, Brevo y Docfav
 - [ ] Validarlo con la gestoría o el consultor de protección de datos antes de lanzarlo

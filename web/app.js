@@ -8,9 +8,9 @@
   const STR = {
     es: {
       title: "Reservas", privacy_title: "Antes de empezar",
-      privacy_text: "Este chat te ayuda a reservar cita. Para reservar te pediremos nombre, apellidos, móvil y email. No escribas datos de salud.",
-      controller: "Responsable", purpose: "Finalidad", purpose_text: "Gestionar tu cita y responder tus dudas.",
-      legal_basis: "Base legal", legal_basis_text: "Tu solicitud y consentimiento.",
+      privacy_text: "Este chat te orienta sobre el servicio que te conviene y te ayuda a reservar cita. Puedes contarnos qué te molesta; no hace falta que nos digas enfermedades, diagnósticos ni medicación. Para reservar te pediremos nombre, apellidos, móvil y email.",
+      controller: "Responsable", purpose: "Finalidad", purpose_text: "Orientarte sobre el servicio adecuado, gestionar tu cita y responder tus dudas.",
+      legal_basis: "Base legal", legal_basis_text: "Tu consentimiento explícito, también para lo que nos cuentes sobre tu molestia.",
       retention: "Conservación", retention_text: "La conversación se borra al cerrarla o a las 24 h. La cita queda en la agenda del centro.",
       policy: "Política de privacidad completa", accept: "He leído y acepto el aviso de privacidad.",
       start: "Empezar", write: "Escribe tu mensaje", placeholder: "Escribe aquí…", end: "Terminar y borrar la conversación",
@@ -23,9 +23,9 @@
     },
     ca: {
       title: "Reserves", privacy_title: "Abans de començar",
-      privacy_text: "Aquest xat t'ajuda a reservar cita. Per reservar et demanarem nom, cognoms, mòbil i correu. No escriguis dades de salut.",
-      controller: "Responsable", purpose: "Finalitat", purpose_text: "Gestionar la teva cita i respondre els teus dubtes.",
-      legal_basis: "Base legal", legal_basis_text: "La teva sol·licitud i consentiment.",
+      privacy_text: "Aquest xat t'orienta sobre el servei que et convé i t'ajuda a reservar cita. Ens pots explicar què et molesta; no cal que ens diguis malalties, diagnòstics ni medicació. Per reservar et demanarem nom, cognoms, mòbil i correu.",
+      controller: "Responsable", purpose: "Finalitat", purpose_text: "Orientar-te sobre el servei adequat, gestionar la teva cita i respondre els teus dubtes.",
+      legal_basis: "Base legal", legal_basis_text: "El teu consentiment explícit, també per al que ens expliquis de la teva molèstia.",
       retention: "Conservació", retention_text: "La conversa s'esborra en tancar-la o a les 24 h. La cita queda a l'agenda del centre.",
       policy: "Política de privacitat completa", accept: "He llegit i accepto l'avís de privacitat.",
       start: "Començar", write: "Escriu el teu missatge", placeholder: "Escriu aquí…", end: "Acabar i esborrar la conversa",
@@ -38,9 +38,9 @@
     },
     en: {
       title: "Bookings", privacy_title: "Before we start",
-      privacy_text: "This chat helps you book an appointment. To book we'll ask for your first name, surname, mobile and email. Please don't write health details.",
-      controller: "Controller", purpose: "Purpose", purpose_text: "Managing your appointment and answering your questions.",
-      legal_basis: "Legal basis", legal_basis_text: "Your request and consent.",
+      privacy_text: "This chat helps you find the right service and book an appointment. You can tell us what bothers you; there's no need to share illnesses, diagnoses or medication. To book we'll ask for your first name, surname, mobile and email.",
+      controller: "Controller", purpose: "Purpose", purpose_text: "Guiding you to the right service, managing your appointment and answering your questions.",
+      legal_basis: "Legal basis", legal_basis_text: "Your explicit consent, including for what you tell us about your complaint.",
       retention: "Retention", retention_text: "The conversation is deleted when you close it or after 24 h. The appointment stays in the centre's schedule.",
       policy: "Full privacy policy", accept: "I have read and accept the privacy notice.",
       start: "Start", write: "Write your message", placeholder: "Type here…", end: "End and delete the conversation",
