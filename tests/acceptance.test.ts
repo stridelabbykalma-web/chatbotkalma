@@ -513,6 +513,16 @@ describe("Salas y recursos compartidos", () => {
     expect(labels((await search(hc)).r)[0]).toBe("Martes 24/11 a las 13:00");
   });
 
+  it("services \"*\": dos salas para todo; con las dos ocupadas a la vez, no ofrece esa hora", async () => {
+    const h = harness({ cfg: (c) => (c.settings.resources = [{ key: "salas", name: "Salas", capacity: 2, services: "*" }]) });
+    busyRoom(h); // Matilde 13:00-13:30
+    expect(labels((await search(h)).r)[0]).toBe("Martes 24/11 a las 13:00"); // one room still free
+    const h2 = harness({ cfg: (c) => (c.settings.resources = [{ key: "salas", name: "Salas", capacity: 2, services: "*" }]) });
+    busyRoom(h2);
+    h2.docfav.appointments.push({ id: "ext-2", clientId: "y", serviceId: "osteo", staffCalendarId: h2.cfg.settings.staff[2].staff_calendar_id, from: "2026-11-24T12:00:00Z", to: "2026-11-24T12:40:00Z", note: "", behaviour: "confirmed", sendReminder: true });
+    expect(labels((await search(h2)).r)).not.toContain("Martes 24/11 a las 13:00");
+  });
+
   it("también cuenta servicios de Docfav que el chat no ofrece (extra_docfav_service_ids)", async () => {
     const OTHER = "2797cf82-f5d2-473d-a1a5-1cba6f9dabff";
     const h = harness({ cfg: (c) => (c.settings.resources = [{ ...ROOM, extra_docfav_service_ids: [OTHER] }]) });

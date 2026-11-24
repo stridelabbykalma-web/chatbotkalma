@@ -23,6 +23,27 @@ export function localWeekday(d: Date, tz: string): number {
   return ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"].indexOf(name) + 1;
 }
 
+/** Offset (ms) of a time zone at a given instant: local wall time minus UTC. */
+function tzOffsetMs(instantMs: number, tz: string): number {
+  const parts = Object.fromEntries(
+    new Intl.DateTimeFormat("en-US", { timeZone: tz, hourCycle: "h23", year: "numeric", month: "2-digit", day: "2-digit", hour: "2-digit", minute: "2-digit", second: "2-digit" })
+      .formatToParts(new Date(instantMs))
+      .map((p) => [p.type, p.value]),
+  );
+  const asUtc = Date.UTC(+parts.year, +parts.month - 1, +parts.day, +parts.hour, +parts.minute, +parts.second);
+  return asUtc - Math.floor(instantMs / 1000) * 1000;
+}
+
+/** Converts a local wall time "YYYY-MM-DDTHH:MM[:SS]" in `tz` to a UTC ISO string ("...Z"). */
+export function zonedToUtcIso(localWallTime: string, tz: string): string {
+  const m = /^(\d{4})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?/.exec(localWallTime);
+  if (!m) return localWallTime;
+  const guess = Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] ?? 0));
+  let utc = guess - tzOffsetMs(guess, tz);
+  utc = guess - tzOffsetMs(utc, tz); // second pass handles DST changes
+  return new Date(utc).toISOString().replace(/\.\d{3}Z$/, "Z");
+}
+
 export function addDays(ymd: string, days: number): string {
   const [y, m, d] = ymd.split("-").map(Number);
   const t = new Date(Date.UTC(y, m - 1, d + days));

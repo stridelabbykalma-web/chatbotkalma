@@ -65,7 +65,7 @@ function build(env: Env) {
       staffCals,
     );
   } else {
-    docfav = new DocfavApi(env.DOCFAV_API_KEY ?? "", cfg.settings.docfav.clinic_id, cfg.settings.docfav.calendar_id);
+    docfav = new DocfavApi(env.DOCFAV_API_KEY ?? "", cfg.settings.docfav.clinic_id, cfg.settings.docfav.calendar_id, fetch, cfg.settings.docfav.available_slots_local_time !== false);
   }
   if (dryRun) docfav = new DryRunDocfav(docfav);
   const n = cfg.settings.notify;

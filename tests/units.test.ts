@@ -4,6 +4,7 @@ import { scrubText } from "../worker/src/log";
 import { buildEmail } from "../worker/src/notify";
 import { mentionsStaff, renderPlaceholders, violatesFactGuard } from "../worker/src/render";
 import { normalizeEmail, normalizeName, normalizePhone } from "../worker/src/validate";
+import { zonedToUtcIso } from "../worker/src/time";
 
 describe("validación", () => {
   it("móviles españoles e internacionales a E.164", () => {
@@ -68,5 +69,14 @@ describe("privacidad", () => {
     const e = buildEmail({ reason: "urgent", name: "Ana", phone: "+34600000000" });
     expect(e.subject).toBe("[Chat reservas] Posible urgencia (se le ha indicado el 112)");
     expect(e.text).toContain("Por protección de datos no incluye el texto de la conversación");
+  });
+});
+
+describe("zona horaria", () => {
+  it("hora local de Madrid a UTC, en invierno, en verano y en el cambio de hora", () => {
+    expect(zonedToUtcIso("2026-11-26T10:00:00Z", "Europe/Madrid")).toBe("2026-11-26T09:00:00Z");
+    expect(zonedToUtcIso("2026-07-01T10:00:00", "Europe/Madrid")).toBe("2026-07-01T08:00:00Z");
+    expect(zonedToUtcIso("2026-03-29T03:30:00", "Europe/Madrid")).toBe("2026-03-29T01:30:00Z");
+    expect(zonedToUtcIso("2026-10-25T01:00:00", "Europe/Madrid")).toBe("2026-10-24T23:00:00Z");
   });
 });

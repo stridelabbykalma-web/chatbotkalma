@@ -1,4 +1,5 @@
 import { DocfavError } from "./types";
+import { zonedToUtcIso } from "../time";
 import type {
   DfAppointment, DfClientHit, DfService, DfStaffSlots, DocfavClient, NewAppointment, NewClient, SlotsQuery,
 } from "./types";
@@ -22,6 +23,7 @@ export class DocfavApi implements DocfavClient {
     private clinicId: string,
     private calendarId: string,
     private fetchFn: typeof fetch = fetch,
+    private slotsAreLocal = true,
   ) {}
 
   private async request<T>(method: "GET" | "POST", path: string, opts: { query?: Record<string, string | undefined>; body?: unknown } = {}): Promise<T> {
@@ -88,12 +90,20 @@ export class DocfavApi implements DocfavClient {
         period: q.period,
       },
     });
-    return data.map((st) => ({
-      staffCalendarId: st.staff_calendar_id,
-      slots: (st.available_slots ?? []).flatMap((day: any) =>
-        (day.slots ?? []).map((s: any) => ({ from: s.from, to: s.to, available: Boolean(s.available) && (s.hour_type ?? "WORKING_DAY") === "WORKING_DAY" })),
-      ),
-    }));
+    // Docfav bug (checked 24/11/2026): unlike every other endpoint, available-slots returns the
+    // staff member's LOCAL wall time with a fake "Z" (a 09:00-13:00 schedule comes back as
+    // "09:00Z"-"13:00Z"). Convert with the staff calendar's time zone to real UTC. If Docfav fixes
+    // it, set docfav.available_slots_local_time = false (npm run check:docfav detects it).
+    return data.map((st) => {
+      const tz = typeof st.timezone === "string" && st.timezone ? st.timezone : "Europe/Madrid";
+      const fix = (v: string) => (this.slotsAreLocal ? zonedToUtcIso(v, tz) : v);
+      return {
+        staffCalendarId: st.staff_calendar_id,
+        slots: (st.available_slots ?? []).flatMap((day: any) =>
+          (day.slots ?? []).map((s: any) => ({ from: fix(s.from), to: fix(s.to), available: Boolean(s.available) && (s.hour_type ?? "WORKING_DAY") === "WORKING_DAY" })),
+        ),
+      };
+    });
   }
 
   async checkAvailability(staffCalendarId: string, from: string, to: string): Promise<boolean> {
@@ -137,7 +147,7 @@ export class DocfavApi implements DocfavClient {
         },
       });
       for (const a of data.appointments ?? []) {
-        out.push({ id: a.id, from: a.booked_from, to: a.booked_to, serviceId: a.service_id, status: a.status ?? "", note: a.note ?? null });
+        out.push({ id: a.id, from: a.booked_from, to: a.booked_to, serviceId: a.service_id, calendarId: a.calendar_id, status: a.status ?? "", note: a.note ?? null });
       }
       start = stop + 1000;
     }

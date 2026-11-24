@@ -71,7 +71,7 @@ export async function getCatalog(deps: Deps): Promise<{ entries: CatalogEntry[];
 // ---------- shared rooms / equipment ----------
 
 export function resourcesFor(cfg: AppConfig, serviceId: string) {
-  return (cfg.settings.resources ?? []).filter((r) => r.services.includes(serviceId));
+  return (cfg.settings.resources ?? []).filter((r) => r.services === "*" || r.services.includes(serviceId));
 }
 
 type Usage = Map<string, [number, number][]>;
@@ -81,11 +81,16 @@ async function resourceUsage(deps: Deps, resources: ReturnType<typeof resourcesF
   const iso = (ms: number) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, "Z");
   const appts = await deps.docfav.listAppointments(iso(fromMs), iso(toMs));
   const configIdOf = new Map(deps.cfg.services.map((s) => [s.docfav_service_id, s.id]));
+  const centreCalendar = deps.cfg.settings.docfav.calendar_id;
   const usage: Usage = new Map();
   for (const r of resources) {
     const busy = appts
       .filter((a) => a.to && a.serviceId && !/cancel/i.test(a.status))
-      .filter((a) => r.services.includes(configIdOf.get(a.serviceId!) ?? "") || (r.extra_docfav_service_ids ?? []).includes(a.serviceId!))
+      .filter((a) =>
+        r.services === "*"
+          ? !a.calendarId || a.calendarId === centreCalendar
+          : r.services.includes(configIdOf.get(a.serviceId!) ?? "") || (r.extra_docfav_service_ids ?? []).includes(a.serviceId!),
+      )
       .map((a) => [Date.parse(a.from), Date.parse(a.to!)] as [number, number]);
     usage.set(r.key, busy);
   }

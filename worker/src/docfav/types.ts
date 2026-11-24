@@ -31,6 +31,7 @@ export interface DfAppointment {
   from: string;
   to?: string;
   serviceId?: string;
+  calendarId?: string;
   status: string;
   note: string | null;
 }

@@ -65,7 +65,7 @@ export interface Settings {
   };
   privacy: { controller: string; nif: string; contact_email: string; policy_url: string };
   notify: { to_email: string; from_email: string; from_name: string };
-  docfav: { clinic_id: string; calendar_id: string };
+  docfav: { clinic_id: string; calendar_id: string; available_slots_local_time?: boolean };
   staff: StaffConfig[];
   /** Rooms or equipment shared by several professionals: never booked over capacity. */
   resources?: ResourceConfig[];
@@ -76,8 +76,9 @@ export interface ResourceConfig {
   name: string;
   /** How many can be in use at the same time (1 = one room). */
   capacity: number;
-  /** Config service ids that need this resource. */
-  services: string[];
+  /** Config service ids that need this resource, or "*" = every appointment at the centre
+   *  (any service, any channel; home visits in other Docfav calendars don't count). */
+  services: string[] | "*";
   /** Other Docfav services (not offered by the chat) that also occupy it. */
   extra_docfav_service_ids?: string[];
 }

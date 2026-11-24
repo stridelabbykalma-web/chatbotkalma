@@ -16,7 +16,7 @@ const key = process.env.DOCFAV_API_KEY;
 
 describe.skipIf(!key)("Docfav real (solo lectura)", () => {
   const cfg = loadConfig();
-  const api = new DocfavApi(key!, cfg.settings.docfav.clinic_id, cfg.settings.docfav.calendar_id);
+  const api = new DocfavApi(key!, cfg.settings.docfav.clinic_id, cfg.settings.docfav.calendar_id, fetch, cfg.settings.docfav.available_slots_local_time !== false);
   const deps: Deps = {
     cfg, docfav: api, store: new MemoryStore(), mailer: noopMailer, logger: new MemoryLogger(),
     now: () => Date.now(), randomId: () => crypto.randomUUID().replace(/-/g, ""), dryRun: true,
@@ -41,7 +41,35 @@ describe.skipIf(!key)("Docfav real (solo lectura)", () => {
       expect(r.ok).toBe(true);
       if (!r.ok) continue;
       console.log(`${e.cfg.id}: ${r.slots.map((s) => `${labelFor(deps, s, "es")} (${staffName(deps, s.staffKey)})`).join(" | ") || "sin huecos en 14 días"}`);
-      if (r.slots[0]) expect(await api.checkAvailability(r.slots[0].staffCalendarId, r.slots[0].from, r.slots[0].to)).toBe(true);
+      // Every offered slot must be free for Docfav's own (UTC) check: catches time-zone mistakes.
+      for (const sl of r.slots) expect(await api.checkAvailability(sl.staffCalendarId, sl.from, sl.to), `${e.cfg.id} ${sl.from}`).toBe(true);
     }
+  });
+
+  it("nunca ofrece un hueco con todas las salas ocupadas (citas reales del centro)", async () => {
+    const res = cfg.settings.resources ?? [];
+    if (!res.length) return;
+    const from = new Date().toISOString();
+    const to = new Date(Date.now() + 15 * 86400_000).toISOString();
+    const appts = (await api.listAppointments(from, to)).filter((a) => a.to && !/cancel/i.test(a.status) && (!a.calendarId || a.calendarId === cfg.settings.docfav.calendar_id));
+    let checked = 0;
+    let fullMoments = 0;
+    for (const s of cfg.services.filter((x) => x.bookable_online)) {
+      const session = { id: "live", lang: "es", offered: {} } as unknown as SessionState;
+      const r = await findSlots(deps, session, { serviceId: s.id });
+      if (!r.ok) continue;
+      for (const slot of r.slots) {
+        const a = Date.parse(slot.from);
+        const b = Date.parse(slot.to);
+        const overlapping = appts.filter((x) => Date.parse(x.from) < b && Date.parse(x.to!) > a).length;
+        expect(overlapping, `${s.id} ${slot.from}`).toBeLessThan(res[0].capacity);
+        checked++;
+      }
+    }
+    for (const x of appts) {
+      const n = appts.filter((y) => Date.parse(y.from) < Date.parse(x.to!) && Date.parse(y.to!) > Date.parse(x.from)).length;
+      if (n >= res[0].capacity) fullMoments++;
+    }
+    console.log(`citas del centro: ${appts.length}; citas en momentos con todas las salas ocupadas: ${fullMoments}; huecos ofrecidos comprobados: ${checked}`);
   });
 });

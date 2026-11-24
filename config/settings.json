@@ -52,7 +52,8 @@
   },
   "docfav": {
     "clinic_id": "bed10ea2-0b01-4a7e-a0db-4ffa09e4ec5e",
-    "calendar_id": "0125b951-7a33-4e3f-9f36-7f2f5ff0afc9"
+    "calendar_id": "0125b951-7a33-4e3f-9f36-7f2f5ff0afc9",
+    "available_slots_local_time": true
   },
   "staff": [
     {
@@ -74,6 +75,13 @@
       "staff_calendar_id": "ee38efeb-8ccd-4a1a-9d05-4e556537d7b9"
     }
   ],
-  "_comment_resources": "Salas o aparatos compartidos. Un recurso con capacity 1 no se reserva dos veces a la vez, aunque sean profesionales distintos. services: ids de services.json que lo usan; extra_docfav_service_ids: otros servicios de Docfav que también lo ocupan. Ejemplo: {\"key\": \"sala_1\", \"name\": \"Sala 1\", \"capacity\": 1, \"services\": [\"quiropodia\", \"visita\"], \"extra_docfav_service_ids\": []}",
-  "resources": []
+  "_comment_resources": "Salas o aparatos compartidos. Un recurso no se usa por encima de su capacidad, aunque sean profesionales distintos. services: \"*\" = todas las citas del centro (cualquier servicio, también las creadas en Docfav; las de domicilio no cuentan), o una lista de ids de services.json. extra_docfav_service_ids: otros servicios de Docfav que también lo ocupan (solo con lista).",
+  "resources": [
+    {
+      "key": "salas",
+      "name": "Salas de consulta",
+      "capacity": 2,
+      "services": "*"
+    }
+  ]
 }

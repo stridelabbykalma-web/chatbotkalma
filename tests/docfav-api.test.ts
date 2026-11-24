@@ -29,6 +29,13 @@ describe("Docfav Public API v1 client", () => {
     expect((f.calls[0].init.headers as Record<string, string>)["X-Api-Key"]).toBe("df_pk_test");
   });
 
+  it("converts available-slots times (local wall time with a fake Z) to real UTC", async () => {
+    const f = fakeFetch([ok([{ staff_calendar_id: "sc1", timezone: "Europe/Madrid", available_slots: [{ date: "2026-11-26", slots: [{ from: "2026-11-26T09:00:00Z", to: "2026-11-26T09:15:00Z", available: true, hour_type: "WORKING_DAY" }] }] }])]);
+    const api = new DocfavApi("k", CLINIC, CAL, f.fn);
+    const r = await api.getAvailableSlots({ startDate: "2026-11-26", endDate: "2026-11-26" });
+    expect(r[0].slots[0]).toEqual({ from: "2026-11-26T08:00:00Z", to: "2026-11-26T08:15:00Z", available: true });
+  });
+
   it("retries a failed read once", async () => {
     const f = fakeFetch([{ status: 503, body: { data: null, errors: [{ code: "API_DISABLED" }] } }, ok({ available: true })]);
     const api = new DocfavApi("k", CLINIC, CAL, f.fn);

@@ -53,8 +53,9 @@ No tiene ninguna para buscar pacientes ni para crear, anular o leer citas. Por d
 7. **Antelación mínima para reservar: 2 h** (`booking.min_lead_hours`). El plazo para anular lo aplica Docfav, no el bot.
 8. **Nunca se dice qué profesional atiende.** El código reparte cada hueco entre los profesionales de `services.json` que tienen ese hueco libre y se lo pasa a Docfav, pero el paciente solo ve día y hora: ni en los botones, ni en el resumen, ni en la confirmación. La IA tampoco conoce los nombres ni puede elegir profesional. Si aun así escribe el nombre de alguien del equipo, el mensaje se descarta. Si el paciente pide a alguien en concreto, se le indica que lo pida llamando al centro.
 9. **CatSalut pendiente de revisión.** El servicio "Cat Salut" de Docfav (0 €) solo vale para quien tiene sesiones concedidas por su médico del CAP. El bot lo ofrece cuando el paciente dice que viene derivado o pregunta por la Seguridad Social, nunca dice "0 €" (dice "a cargo de CatSalut") y la cita se crea en Docfav como **pendiente** con la nota "PENDIENTE DE REVISAR". Al confirmar, el centro recibe un email con nombre, móvil, email, día y hora para llamar al paciente. Lo impone el código (`requires_review` en `services.json`), no el prompt. Requiere `notify.to_email` y Brevo configurados.
-10. **Salas y aparatos compartidos.** La API de Docfav no tiene recursos ni salas: solo comprueba la agenda de cada profesional. Por eso los recursos se definen en `settings.json > resources` (nombre, capacidad y servicios que los usan). Al buscar huecos, el bot lee todas las citas del centro en Docfav (también las creadas a mano) y descarta las horas en que el recurso está lleno. Al confirmar, lo vuelve a comprobar. Si no puede leer las citas, no ofrece huecos.
-11. **Plan B incluido.** Con `booking.mode = "portal"` y `booking.portal_url`, el bot abre la agenda online de Docfav dentro del chat en vez de reservar él.
+10. **Horas de Docfav corregidas.** El endpoint de huecos libres de Docfav devuelve la hora local de Madrid con una "Z" de UTC, al contrario que el resto de la API y que su documentación. El cliente la convierte con la zona horaria de cada profesional (`docfav.available_slots_local_time`). `npm run check:docfav` comprueba con Docfav cada hueco ofrecido y detectaría si Docfav lo corrige.
+11. **Salas y aparatos compartidos.** La API de Docfav no tiene recursos ni salas: solo comprueba la agenda de cada profesional. Por eso los recursos se definen en `settings.json > resources` (nombre, capacidad y servicios que los usan). Al buscar huecos, el bot lee todas las citas del centro en Docfav (también las creadas a mano) y descarta las horas en que el recurso está lleno. Al confirmar, lo vuelve a comprobar. Si no puede leer las citas, no ofrece huecos.
+12. **Plan B incluido.** Con `booking.mode = "portal"` y `booking.portal_url`, el bot abre la agenda online de Docfav dentro del chat en vez de reservar él.
 
 ## Lo que se ha comprobado en Docfav
 
@@ -92,7 +93,7 @@ El bot solo sabe lo que pongas aquí. Lo que falte lo deriva al equipo: nunca lo
 - [ ] Revisar `booking`: antelación mínima, días de búsqueda, límites, estado de la cita (`confirmed` o `pending`)
 
 **Salas y recursos** (`settings.json > resources`)
-- [ ] Qué salas o aparatos hay, cuántos de cada uno y qué servicios usan cada uno (también los que no se reservan por el chat)
+- [x] Dos salas para todos los servicios del centro (`"salas"`, capacidad 2, `services: "*"`). Comprobado con Docfav: sus huecos no tienen en cuenta las salas, así que lo aplica el bot
 
 **`config/services.json`**: el catálogo que el bot explica y vende. Lo he rellenado con los servicios activos de Docfav y unas descripciones generales que hay que revisar:
 - [ ] Revisar `summary` (qué es) y `for` (para quién) de cada servicio: es lo que el bot cuenta para vender
