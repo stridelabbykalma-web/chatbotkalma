@@ -1,0 +1,77 @@
+{
+  "_comment": "Servicios que conoce el bot. Precio y duración: si price_eur / duration_min son null se usan los de Docfav. Solo se reservan los que tienen bookable_online: true. professionals: claves de settings.json > staff.",
+  "services": [
+    {
+      "id": "estudio_biomecanico",
+      "docfav_service_id": "6c8c843b-5e18-4b82-9691-1efec9cabd0b",
+      "brand": "Stride Lab",
+      "name": {
+        "es": "Estudio biomecánico de la carrera (MotionMetrix G2)",
+        "ca": "Estudi biomecànic de la cursa (MotionMetrix G2)",
+        "en": "Running biomechanics study (MotionMetrix G2)"
+      },
+      "summary": {
+        "es": "Análisis de la técnica de carrera en cinta con MotionMetrix G2.",
+        "ca": "Anàlisi de la tècnica de cursa a la cinta amb MotionMetrix G2.",
+        "en": "Treadmill running-technique analysis with MotionMetrix G2."
+      },
+      "professionals": ["abraham"],
+      "bookable_online": true,
+      "price_eur": null,
+      "duration_min": null,
+      "bring": { "es": "", "ca": "", "en": "" }
+    },
+    {
+      "id": "plantillas",
+      "docfav_service_id": "a2cf06ac-a659-4fb7-bf67-06e097f17ecf",
+      "brand": "Kalma",
+      "name": {
+        "es": "Plantillas a medida (exploración biomecánica del pie)",
+        "ca": "Plantilles a mida (exploració biomecànica del peu)",
+        "en": "Custom insoles (biomechanical foot assessment)"
+      },
+      "summary": {
+        "es": "Primera visita para estudiar el pie y, si procede, hacer plantillas a medida.",
+        "ca": "Primera visita per estudiar el peu i, si cal, fer plantilles a mida.",
+        "en": "First visit to assess the foot and, if needed, make custom insoles."
+      },
+      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "bookable_online": true,
+      "price_eur": null,
+      "duration_min": null,
+      "bring": { "es": "", "ca": "", "en": "" }
+    },
+    {
+      "id": "quiropodia",
+      "docfav_service_id": "b42a1fec-80d7-4015-b92a-f877a31da7ed",
+      "brand": "Kalma",
+      "name": { "es": "Quiropodia", "ca": "Quiropòdia", "en": "Chiropody" },
+      "summary": {
+        "es": "Cuidado de uñas y durezas del pie.",
+        "ca": "Cura d'ungles i durícies del peu.",
+        "en": "Nail and callus care."
+      },
+      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "bookable_online": true,
+      "price_eur": null,
+      "duration_min": null,
+      "bring": { "es": "", "ca": "", "en": "" }
+    },
+    {
+      "id": "revision_plantillas",
+      "docfav_service_id": "34580ad7-e911-4405-89bb-fd39538d7dee",
+      "brand": "Kalma",
+      "name": { "es": "Revisión de plantillas", "ca": "Revisió de plantilles", "en": "Insole check-up" },
+      "summary": {
+        "es": "Control y ajuste de plantillas ya hechas.",
+        "ca": "Control i ajust de plantilles ja fetes.",
+        "en": "Check and adjustment of existing insoles."
+      },
+      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "bookable_online": true,
+      "price_eur": null,
+      "duration_min": null,
+      "bring": { "es": "", "ca": "", "en": "" }
+    }
+  ]
+}

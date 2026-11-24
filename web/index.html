@@ -1,0 +1,65 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="robots" content="noindex">
+  <meta name="theme-color" content="#0f5257">
+  <title>Reservas · Kalma y Stride Lab</title>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-mark" aria-hidden="true">K</span>
+      <div>
+        <h1 id="title">Reservas</h1>
+        <p id="subtitle" class="muted">Kalma Centre Terapèutic · Stride Lab</p>
+      </div>
+    </div>
+    <div class="lang" role="group" aria-label="Idioma / Language">
+      <button type="button" data-lang="es" aria-pressed="true">ES</button>
+      <button type="button" data-lang="ca" aria-pressed="false">CA</button>
+      <button type="button" data-lang="en" aria-pressed="false">EN</button>
+    </div>
+  </header>
+
+  <main id="main">
+    <section id="privacy" class="card privacy" aria-labelledby="privacy-title">
+      <h2 id="privacy-title"></h2>
+      <p id="privacy-text"></p>
+      <dl class="privacy-facts">
+        <dt data-i18n="controller"></dt><dd id="privacy-controller"></dd>
+        <dt data-i18n="purpose"></dt><dd data-i18n="purpose_text"></dd>
+        <dt data-i18n="legal_basis"></dt><dd data-i18n="legal_basis_text"></dd>
+        <dt data-i18n="retention"></dt><dd data-i18n="retention_text"></dd>
+      </dl>
+      <p><a id="privacy-link" href="#" target="_blank" rel="noopener" hidden></a></p>
+      <label class="check">
+        <input type="checkbox" id="privacy-check">
+        <span data-i18n="accept"></span>
+      </label>
+      <div id="turnstile" class="turnstile"></div>
+      <button type="button" id="start" class="primary" disabled></button>
+      <p id="start-error" class="error" role="alert" hidden></p>
+    </section>
+
+    <section id="chat" class="chat" hidden aria-live="polite">
+      <ol id="log" class="log"></ol>
+    </section>
+  </main>
+
+  <form id="composer" class="composer" hidden autocomplete="off">
+    <label for="input" class="sr-only" data-i18n="write"></label>
+    <textarea id="input" rows="1" maxlength="800" enterkeyhint="send"></textarea>
+    <button type="submit" id="send" class="primary send" aria-label="Enviar">
+      <svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path d="M3 20.5 21 12 3 3.5l.01 6.6L15 12 3.01 13.9z" fill="currentColor"/></svg>
+    </button>
+  </form>
+  <footer class="footer">
+    <button type="button" id="end" class="link" hidden></button>
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

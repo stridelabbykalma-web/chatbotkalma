@@ -1,0 +1,70 @@
+{
+  "_comment": "Configuración del chatbot. Los campos vacíos (\"\") son datos pendientes: mientras falten, el bot no los inventa y deriva al equipo.",
+  "center": {
+    "name": "Centre Kalma",
+    "brands": ["Kalma Centre Terapèutic", "Stride Lab"],
+    "address": "Rambla Onze de Setembre, 88, 17244 Cassà de la Selva (Girona)",
+    "maps_url": "",
+    "phone": "",
+    "whatsapp": "",
+    "email": "",
+    "hours": { "es": "", "ca": "", "en": "" }
+  },
+  "booking": {
+    "mode": "api",
+    "portal_url": "",
+    "timezone": "Europe/Madrid",
+    "min_lead_hours": 2,
+    "search_days_default": 14,
+    "horizon_days": 60,
+    "max_slots_offered": 5,
+    "max_slots_per_day": 2,
+    "max_future_chat_appointments": 2,
+    "confirmation_token_ttl_minutes": 10,
+    "appointment_behaviour": "confirmed",
+    "send_reminder": true,
+    "appointment_note": "Reserva desde Chat web",
+    "cancel_min_hours": 24
+  },
+  "limits": {
+    "messages_per_minute": 10,
+    "messages_per_conversation": 40,
+    "requests_per_minute_per_ip": 60,
+    "max_message_chars": 800
+  },
+  "privacy": {
+    "controller": "",
+    "nif": "",
+    "contact_email": "",
+    "policy_url": ""
+  },
+  "notify": {
+    "to_email": "",
+    "from_email": "",
+    "from_name": "Chat de reservas Kalma"
+  },
+  "docfav": {
+    "clinic_id": "bed10ea2-0b01-4a7e-a0db-4ffa09e4ec5e",
+    "calendar_id": "0125b951-7a33-4e3f-9f36-7f2f5ff0afc9"
+  },
+  "staff": [
+    {
+      "key": "abraham",
+      "name": "Abraham",
+      "staff_id": "ea49e394-33c4-47e2-9da3-b17115f99021",
+      "staff_calendar_id": "6f6a4317-569f-4b81-a0d0-7d0f4f7b917e"
+    },
+    {
+      "key": "matilde",
+      "name": "Matilde",
+      "staff_id": "a5f8b939-3c9b-4f21-962a-49f4464cd613",
+      "staff_calendar_id": "95b2ee43-f825-4934-8719-3491f5bcc8f2"
+    },
+    {
+      "key": "jose_antonio",
+      "name": "José Antonio",
+      "staff_id": "a1afb68c-2392-4017-9af0-85758fb8f35e",
+      "staff_calendar_id": "ee38efeb-8ccd-4a1a-9d05-4e556537d7b9"
+    }
+  ]
+}

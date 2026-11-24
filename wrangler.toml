@@ -1,0 +1,38 @@
+name = "kalma-reservas"
+main = "worker/src/index.ts"
+compatibility_date = "2026-11-01"
+compatibility_flags = ["nodejs_compat"]
+
+# El chat se sirve en https://TU-DOMINIO/reservas/ (ver README: rutas).
+# routes = [{ pattern = "kalma.example.com/reservas*", zone_name = "kalma.example.com" }]
+
+[assets]
+directory = "./web"
+binding = "ASSETS"
+run_worker_first = true
+
+[[durable_objects.bindings]]
+name = "SESSIONS"
+class_name = "SessionDO"
+
+[[migrations]]
+tag = "v1"
+new_sqlite_classes = ["SessionDO"]
+
+[[rules]]
+type = "Text"
+globs = ["**/*.md"]
+fallthrough = true
+
+[vars]
+DRY_RUN = "true"
+DOCFAV_MODE = "api"
+AI_MODEL = "claude-opus-5-5"
+AI_EFFORT = "low"
+ALLOWED_ORIGINS = ""
+TURNSTILE_SITE_KEY = ""
+SESSIONS_JURISDICTION = "eu"
+DEBUG_ERRORS = "false"
+
+[observability]
+enabled = true

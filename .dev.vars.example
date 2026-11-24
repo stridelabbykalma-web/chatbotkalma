@@ -1,0 +1,13 @@
+# Copia este archivo a .dev.vars para desarrollo local. Nunca subas .dev.vars al repositorio.
+# En producción se configuran con: npx wrangler secret put NOMBRE
+ANTHROPIC_API_KEY=
+DOCFAV_API_KEY=
+BREVO_API_KEY=
+TURNSTILE_SECRET=
+
+# Para probar en local sin claves (Docfav simulado, IA de demo, sin jurisdicción UE):
+# DOCFAV_MODE=mock
+# AI_MODEL=demo
+# DRY_RUN=false
+# SESSIONS_JURISDICTION=none
+# DEBUG_ERRORS=true

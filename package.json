@@ -1,0 +1,37 @@
+{
+  "name": "chatbotkalma",
+  "version": "1.0.0",
+  "description": "Chatbot de reservas de Kalma Centre Terapèutic y Stride Lab (Cloudflare Workers + Docfav + Claude)",
+  "scripts": {
+    "dev": "wrangler dev",
+    "deploy": "wrangler deploy",
+    "test": "vitest run",
+    "typecheck": "tsc -p tsconfig.json",
+    "check:docfav": "vitest run --config vitest.live.config.ts tests/live/docfav",
+    "eval": "vitest run --config vitest.live.config.ts tests/live/agent"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/stridelabbykalma-web/chatbotkalma.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/stridelabbykalma-web/chatbotkalma/issues"
+  },
+  "homepage": "https://github.com/stridelabbykalma-web/chatbotkalma#readme",
+  "dependencies": {
+    "@anthropic-ai/sdk": "^1.13.0",
+    "libphonenumber-js": "^1.13.17"
+  },
+  "devDependencies": {
+    "@cloudflare/workers-types": "^5.20261124.2",
+    "@types/node": "^26.6.7",
+    "typescript": "^7.0.2",
+    "vitest": "^5.1.1",
+    "wrangler": "^4.168.0"
+  },
+  "private": true,
+  "type": "module"
+}
