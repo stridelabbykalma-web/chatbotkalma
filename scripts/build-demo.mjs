@@ -35,6 +35,9 @@ const demoCss = `
 .demo .row { display: flex; flex-wrap: wrap; gap: 10px 16px; align-items: center; margin-top: 10px; }
 .demo select { font: inherit; padding: 4px 8px; border-radius: 8px; border: 1px solid var(--border); background: var(--bg); color: var(--text); }
 .demo .muted { margin: 6px 0 0; }
+.demo #demo-results details { margin-top: 8px; padding: 8px 12px; }
+.demo .transcript { padding-left: 18px; display: grid; gap: 4px; font-size: .82rem; }
+.demo .transcript li.paciente { color: var(--brand); }
 `;
 
 const demoHtml = `
@@ -49,6 +52,10 @@ const panelHtml = `
       <label>Modelo <select id="demo-tier"><option value="default">completo (recomendado, tarda unos segundos)</option><option value="quick">rápido (respuestas más pobres)</option></select></label>
       <label><input type="checkbox" id="demo-down"> Simular Docfav caído</label>
     </div>
+    <h4>Pruebas con personas simuladas</h4>
+    <p class="muted">Otra IA hace de 10 pacientes distintos (personas mayores, estilo WhatsApp, catalán, inglés...) y conversa con el bot. Tarda unos 10-20 minutos y usa tu cuenta de Claude.</p>
+    <div class="row"><button type="button" id="demo-run" class="secondary">Ejecutar pruebas</button></div>
+    <div id="demo-results"></div>
     <h4>Citas creadas en la agenda (simulada)</h4>
     <ul id="demo-appts"></ul>
     <h4>Emails enviados al centro</h4>

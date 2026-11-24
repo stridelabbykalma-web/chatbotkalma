@@ -14,6 +14,7 @@ import { MemoryLogger } from "../worker/src/log";
 import { MemoryMailer } from "../worker/src/notify";
 import { MemoryStore } from "../worker/src/store";
 import { slotLabel } from "../worker/src/time";
+import { PERSONAS, runPersona, type Turn } from "./personas";
 
 declare global {
   interface Window {
@@ -180,6 +181,7 @@ function renderPanel() {
 }
 
 function setupPanel() {
+  byId("demo-run").addEventListener("click", () => void runPersonaTests());
   const down = byId("demo-down") as HTMLInputElement;
   down.addEventListener("change", () => (docfav.down = down.checked));
   const tier = byId("demo-tier") as HTMLSelectElement;
@@ -202,6 +204,65 @@ async function connectClaude() {
     status.textContent = "IA: reglas de demo (Claude no está disponible en esta vista).";
     (byId("demo-tier") as HTMLSelectElement).disabled = true;
   }
+}
+
+// ---------- persona tests ----------
+async function api(path: string, body: Record<string, unknown>) {
+  const res = await app.handle(new Request(`https://demo.kalma/reservas/api/${path}`, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) }));
+  queueMicrotask(renderPanel);
+  return res.json();
+}
+
+async function runPersonaTests() {
+  const btn = byId("demo-run") as HTMLButtonElement;
+  const out = byId("demo-results");
+  if (!(llm.inner instanceof SampleLLM)) {
+    out.textContent = "Las pruebas necesitan Claude, y no está disponible en esta vista.";
+    return;
+  }
+  const sample = (llm.inner as any).sample;
+  const db = window.claude ? await window.claude.use("db").catch(() => null) : null;
+  btn.disabled = true;
+  const runId = new Date().toISOString().replace(/[:.]/g, "-");
+  out.replaceChildren();
+  const status = document.createElement("p");
+  status.className = "muted";
+  out.append(status);
+  let done = 0;
+  const update = () => (status.textContent = `Pruebas: ${done}/${PERSONAS.length} terminadas${db ? " · se guardan para que Claude las lea" : " · no se pueden guardar (sin base de datos)"}.`);
+  update();
+  if (db) await db.doc(`pruebas/${runId}`).set({ startedAt: new Date().toISOString(), tier: (llm.inner as SampleLLM).tier, personas: PERSONAS.length }).catch(() => undefined);
+
+  const queue = [...PERSONAS];
+  async function worker() {
+    for (let p = queue.shift(); p; p = queue.shift()) {
+      const box = document.createElement("details");
+      const sum = document.createElement("summary");
+      sum.textContent = `${p.name} · en curso…`;
+      const list = document.createElement("ol");
+      list.className = "transcript";
+      box.append(sum, list);
+      out.append(box);
+      const onTurn = (t: Turn) => {
+        const li = document.createElement("li");
+        li.className = t.who;
+        li.textContent = `${t.who === "bot" ? "Bot" : "Paciente"}: ${t.text}${t.ui ? `  ⟨${t.ui}⟩` : ""}${t.note ? `  — ${t.note}` : ""}`;
+        list.append(li);
+      };
+      try {
+        const r = await runPersona(p, api, sample, onTurn);
+        sum.textContent = `${p.name} · ${r.booked ? "reservó" : r.ended}`;
+        if (db) await db.doc(`pruebas/${runId}/conversaciones/${p.id}`).set({ ...r, finishedAt: new Date().toISOString() }).catch(() => undefined);
+      } catch (e: any) {
+        sum.textContent = `${p.name} · error: ${e?.code ?? e?.message ?? e}`;
+      }
+      done++;
+      update();
+    }
+  }
+  await Promise.all([worker(), worker(), worker()]);
+  status.textContent += " Listo: dile a Claude que ya puede leer los resultados.";
+  btn.disabled = false;
 }
 
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { setupPanel(); connectClaude(); });
