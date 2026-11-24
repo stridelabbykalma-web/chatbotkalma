@@ -80,9 +80,9 @@ const T = {
   },
   bring: { es: "Qué traer: {text}", ca: "Què portar: {text}", en: "What to bring: {text}" },
   booked_footer: {
-    es: "Te llegará la confirmación de Docfav con un enlace para anular si lo necesitas.",
-    ca: "Et vindrà la confirmació de Docfav amb un enllaç per anul·lar si ho necessites.",
-    en: "You'll receive Docfav's confirmation with a link to cancel if you need to.",
+    es: "Te llegará un mensaje de confirmación con un enlace por si necesitas anularla.",
+    ca: "Et vindrà un missatge de confirmació amb un enllaç per si l'has d'anul·lar.",
+    en: "You'll get a confirmation message with a link in case you need to cancel.",
   },
   booking_failed: {
     es: "No he podido completar la reserva. No se ha creado ninguna cita. Contacta con el centro y te ayudamos.",

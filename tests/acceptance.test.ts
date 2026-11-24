@@ -149,7 +149,7 @@ describe("5. La cita creada recibe la confirmación de Docfav", () => {
     const { token } = await bookUntilSummary(h, sid);
     const res = await h.call("/action", { sessionId: sid, action: { type: "confirm", token } });
     expect(h.docfav.appointments[0].sendReminder).toBe(true);
-    expect(res.body.messages[0].text).toMatch(/confirmación de Docfav con un enlace para anular/);
+    expect(res.body.messages[0].text).toMatch(/mensaje de confirmación con un enlace/);
   });
 });
 
@@ -424,6 +424,32 @@ describe("Nunca se dice qué profesional atiende", () => {
   it("la IA no puede elegir profesional", () => {
     const params = toolDefinitions(false).flatMap((t) => Object.keys((t.input_schema as any).properties ?? {}));
     expect(params).not.toContain("professional_id");
+  });
+});
+
+describe("Regresiones de las simulaciones", () => {
+  it("dos búsquedas en el mismo turno: todos los huecos mostrados siguen funcionando", async () => {
+    const h = harness();
+    const sid = await h.start();
+    h.llm
+      .tools(
+        toolUse("get_availability", { service_id: "quiropodia", part_of_day: "afternoon" }),
+        toolUse("get_availability", { service_id: "quiropodia", weekdays: [6] }),
+      )
+      .say("No hay sábados, pero tengo estas tardes.");
+    const r = await h.call("/chat", { sessionId: sid, text: "tardes o sábado" });
+    const slots = r.body.messages.find((m: any) => m.ui?.type === "slots").ui.slots;
+    expect(slots.length).toBeGreaterThan(0);
+    const sel = await h.call("/action", { sessionId: sid, action: { type: "select_slot", slotId: slots[3].id } });
+    expect(sel.body.messages[0].ui.type).toBe("contact_form");
+  });
+
+  it("notify_staff no permite decir que ya se ha avisado", async () => {
+    const h = harness();
+    const sid = await h.start();
+    h.llm.tools(toolUse("notify_staff", { reason: "urgent" })).say("Ve a urgencias.");
+    await h.call("/chat", { sessionId: sid, text: "herida que no cura" });
+    expect(JSON.stringify(h.llm.requests[1].messages.at(-1))).toContain("Todavía NO se ha avisado a nadie");
   });
 });
 

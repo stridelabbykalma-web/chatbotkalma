@@ -135,7 +135,13 @@ async function runTool(deps: Deps, session: SessionState, name: string, input: R
       const reason = DERIVATION_REASONS.includes(input.reason as NotifyReason) ? (input.reason as NotifyReason) : "other";
       session.derivation = reason;
       deps.logger.event("derivation", { sid: session.id, reason });
-      return { result: { callback_form_shown: true, note: "El equipo recibirá el aviso cuando el paciente deje su nombre y móvil en el formulario." }, ui: { type: "callback_form" } };
+      return {
+        result: {
+          callback_form_shown: true,
+          note: "Todavía NO se ha avisado a nadie: el aviso solo se envía si el paciente deja su nombre y móvil en el formulario. No digas que has avisado; di que si deja su móvil le llamarán.",
+        },
+        ui: { type: "callback_form" },
+      };
     }
     case "log_unanswered": {
       const topic = typeof input.topic === "string" ? scrubText(input.topic).slice(0, 60) : "";
@@ -245,8 +251,12 @@ export async function runAgent(deps: Deps & { llm: LLM }, session: SessionState,
     const { entries } = await getCatalog(deps);
     const text = renderPlaceholders(raw, cfg, factsFrom(entries), session.lang);
     if (!text && !uis.length) return [fallbackTeam(deps, session)];
+    const slotUis = uis.filter((u): u is Extract<UiElement, { type: "slots" }> => u.type === "slots");
+    const mergedSlots = slotUis.length > 1 ? { type: "slots" as const, slots: slotUis.flatMap((u) => u.slots).slice(0, 8) } : undefined;
     const seen = new Set<string>();
-    const unique = uis.filter((u) => !seen.has(u.type) && !!seen.add(u.type));
+    const unique = uis
+      .map((u) => (u.type === "slots" && mergedSlots ? mergedSlots : u))
+      .filter((u) => !seen.has(u.type) && !!seen.add(u.type));
     const [first, ...rest] = unique;
     return [{ text, ui: first }, ...rest.map((ui) => ({ text: "", ui }))];
   }

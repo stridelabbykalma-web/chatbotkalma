@@ -195,8 +195,11 @@ export async function findSlots(
     chosen.push({ ...c, id: deps.randomId().slice(0, 12) });
   }
 
-  session.offered = Object.fromEntries(chosen.map((s) => [s.id, s]));
-  session.lastQuery = query;
+  // Keep earlier offers too: the model may search twice in one turn (e.g. Saturdays, then
+  // afternoons) and every button the patient still sees must keep working. Capped at 30.
+  const merged = [...Object.values(session.offered).filter((o) => !excluded.has(`${o.staffCalendarId}|${o.from}`)), ...chosen].slice(-30);
+  session.offered = Object.fromEntries(merged.map((s) => [s.id, s]));
+  if (chosen.length) session.lastQuery = query;
   return { ok: true, slots: chosen, query };
 }
 
