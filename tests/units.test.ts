@@ -28,10 +28,10 @@ describe("validación", () => {
 
 describe("marcadores y guardas", () => {
   const cfg = loadConfig();
-  it("datos ausentes se sustituyen por 'consúltalo con el equipo'", () => {
-    expect(renderPlaceholders("Llama al {{telefono}}", cfg, {}, "es")).toBe("Llama al consúltalo con el equipo");
-    expect(renderPlaceholders("{{inventado}}", cfg, {}, "en")).toBe("please ask the team");
-    expect(renderPlaceholders("{{direccion}}", cfg, {}, "ca")).toBe(cfg.settings.center.address);
+  it("si falta un dato, se borra la frase entera (nunca 'llama al consúltalo con el equipo')", () => {
+    expect(renderPlaceholders("Claro. Llama al {{telefono}} cuando quieras. ¿Te busco cita?", cfg, {}, "es")).toBe("Claro. ¿Te busco cita?");
+    expect(renderPlaceholders("{{inventado}}", cfg, {}, "en")).toBe("");
+    expect(renderPlaceholders("Estamos en {{direccion}}.", cfg, {}, "ca")).toBe(`Estamos en ${cfg.settings.center.address}.`);
   });
   it("detecta precios y teléfonos escritos por la IA, pero no fechas ni horas", () => {
     expect(violatesFactGuard("Cuesta 30€")).toBe("price");

@@ -8,7 +8,7 @@ import type { Mailer } from "./notify";
 import { formatPrice, type ServiceFacts } from "./render";
 import type { SessionStore } from "./store";
 import { addDays, daysBetween, isYmd, localDate, localHour, localWeekday, slotLabel } from "./time";
-import type { AvailabilityQuery, BotMessage, Lang, OfferedSlot, SessionState } from "./types";
+import type { AvailabilityQuery, BotMessage, Lang, OfferedSlot, SessionState, UiElement } from "./types";
 import { validateContact } from "./validate";
 
 export interface Deps {
@@ -238,9 +238,11 @@ export function selectSlot(deps: Deps, session: SessionState, slotId: unknown): 
   return [{ text: t(session.lang, "ask_contact", { slot: label }), ui: { type: "contact_form", slotLabel: label } }];
 }
 
-function contactUi(deps: Deps) {
+/** Contact card with the centre's channels; when none is configured, the callback form instead. */
+export function contactUi(deps: Deps): UiElement {
   const c = deps.cfg.settings.center;
-  return { type: "contact" as const, phone: c.phone || undefined, whatsapp: c.whatsapp || undefined, email: c.email || undefined };
+  if (!c.phone && !c.whatsapp && !c.email) return { type: "callback_form" };
+  return { type: "contact", phone: c.phone || undefined, whatsapp: c.whatsapp || undefined, email: c.email || undefined };
 }
 
 export function contactMessage(deps: Deps, text: string): BotMessage {

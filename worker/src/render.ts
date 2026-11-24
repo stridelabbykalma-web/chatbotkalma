@@ -13,13 +13,32 @@ export function formatPrice(eur: number | null, lang: Lang): string {
   return lang === "en" ? `€${n}` : `${n} €`;
 }
 
+const MISSING = "\u0000";
+
 /**
  * Replaces {{...}} markers written by the AI with values from the configuration.
- * Unknown markers or missing values become "ask the team" instead of a guess.
+ * A sentence that needs a value we don't have (or an unknown marker) is dropped whole:
+ * never "llama al consúltalo con el equipo", never a guess.
  */
 export function renderPlaceholders(text: string, cfg: AppConfig, facts: ServiceFacts, lang: Lang): string {
+  const replaced = fillPlaceholders(text, cfg, facts, lang);
+  if (!replaced.includes(MISSING)) return replaced;
+  return replaced
+    .split("\n")
+    .map((line) =>
+      line
+        .split(/(?<=[.!?…])\s+/)
+        .filter((sentence) => !sentence.includes(MISSING))
+        .join(" "),
+    )
+    .filter((line, i, all) => line.trim() !== "" || (i > 0 && all[i - 1].trim() !== ""))
+    .join("\n")
+    .trim();
+}
+
+function fillPlaceholders(text: string, cfg: AppConfig, facts: ServiceFacts, lang: Lang): string {
   const c = cfg.settings.center;
-  const unknown = t(lang, "unknown_value");
+  const unknown = MISSING;
   return text.replace(/\{\{\s*([a-z_]+)(?::([a-z0-9_]+))?\s*\}\}/gi, (_m, key: string, arg?: string) => {
     const k = key.toLowerCase();
     const pick = (v: string) => (v && v.trim() ? v : unknown);

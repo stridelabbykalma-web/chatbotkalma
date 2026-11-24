@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { contactMessage, factsFrom, findSlots, getCatalog, labelFor, slotsUi, type Deps } from "./booking";
+import { contactMessage, contactUi, factsFrom, findSlots, getCatalog, labelFor, slotsUi, type Deps } from "./booking";
 import { serviceName } from "./config";
 import { t } from "./i18n";
 import type { LLM } from "./llm";
@@ -38,7 +38,7 @@ export function toolDefinitions(portalMode: boolean): Anthropic.Beta.BetaTool[] 
     },
     {
       name: "show_contact",
-      description: "Muestra al paciente la tarjeta de contacto del centro (teléfono, WhatsApp y email).",
+      description: "Muestra al paciente cómo contactar con el centro (tarjeta con teléfono, WhatsApp y email, o un formulario para que le llamen). Úsala en vez de escribir datos de contacto.",
       input_schema: { type: "object", properties: {}, additionalProperties: false },
     },
     {
@@ -109,6 +109,8 @@ async function runTool(deps: Deps, session: SessionState, name: string, input: R
             id: e.cfg.id,
             name: serviceName(e.cfg, lang),
             brand: e.cfg.brand,
+            what_it_is: e.cfg.summary,
+            for: e.cfg.for,
             bookable_in_chat: e.bookable,
             price: `{{precio:${e.cfg.id}}}`,
             duration: `{{duracion:${e.cfg.id}}}`,
@@ -123,8 +125,12 @@ async function runTool(deps: Deps, session: SessionState, name: string, input: R
       if (options.length < 2) return { result: { error: "need 2-6 options" }, isError: true };
       return { result: { shown: true }, ui: { type: "options", options } };
     }
-    case "show_contact":
-      return { result: { shown: true }, ui: contactMessage(deps, "").ui };
+    case "show_contact": {
+      const ui = contactUi(deps);
+      return ui.type === "contact"
+        ? { result: { shown: "tarjeta con el contacto del centro" }, ui }
+        : { result: { shown: "formulario para que el paciente deje su nombre y móvil y le llamen (el centro aún no tiene teléfono publicado)" }, ui };
+    }
     case "notify_staff": {
       const reason = DERIVATION_REASONS.includes(input.reason as NotifyReason) ? (input.reason as NotifyReason) : "other";
       session.derivation = reason;
@@ -239,7 +245,9 @@ export async function runAgent(deps: Deps & { llm: LLM }, session: SessionState,
     const { entries } = await getCatalog(deps);
     const text = renderPlaceholders(raw, cfg, factsFrom(entries), session.lang);
     if (!text && !uis.length) return [fallbackTeam(deps, session)];
-    const [first, ...rest] = uis;
+    const seen = new Set<string>();
+    const unique = uis.filter((u) => !seen.has(u.type) && !!seen.add(u.type));
+    const [first, ...rest] = unique;
     return [{ text, ui: first }, ...rest.map((ui) => ({ text: "", ui }))];
   }
   return [fallbackTeam(deps, session)];

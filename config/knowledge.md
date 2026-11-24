@@ -6,8 +6,8 @@ Reglas para rellenarlo:
 - Escribe frases cortas y concretas. Lo que no esté aquí, el bot lo deriva al equipo.
 - NO escribas precios, teléfonos, horarios ni la dirección: salen de settings.json y
   services.json. Si los necesitas en una respuesta, usa estos marcadores y el código
-  los sustituye: {{telefono}} {{whatsapp}} {{email}} {{direccion}} {{horario}}
-  {{precio:ID_SERVICIO}} {{duracion:ID_SERVICIO}}
+  los sustituye: {{direccion}} {{horario}} {{precio:ID_SERVICIO}} {{duracion:ID_SERVICIO}}.
+  El contacto del centro lo muestra el chat aparte: no lo escribas aquí.
 - Los apartados marcados como PENDIENTE no se usan hasta que los completes.
 -->
 
@@ -20,7 +20,7 @@ Reglas para rellenarlo:
 - El chat no anula ni cambia citas.
 - Para anular, usa el enlace del mensaje de confirmación o del recordatorio que envía Docfav.
 - Para cambiar una cita: primero se reserva la nueva por el chat y después se anula la antigua con su enlace, así nunca te quedas sin cita.
-- Si no encuentras el enlace, llama al centro: {{telefono}}.
+- Si no encuentras el enlace, contacta con el centro.
 
 ## Horarios y festivos
 PENDIENTE

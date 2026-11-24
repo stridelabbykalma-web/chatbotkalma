@@ -89,7 +89,9 @@ El bot solo sabe lo que pongas aquí. Lo que falte lo deriva al equipo: nunca lo
 - [ ] `notify.to_email` (quién recibe los avisos) y `notify.from_email` (un remitente verificado en Brevo)
 - [ ] Revisar `booking`: antelación mínima, días de búsqueda, límites, estado de la cita (`confirmed` o `pending`)
 
-**`config/services.json`**
+**`config/services.json`**: el catálogo que el bot explica y vende. Lo he rellenado con los servicios activos de Docfav y unas descripciones generales que hay que revisar:
+- [ ] Revisar `summary` (qué es) y `for` (para quién) de cada servicio: es lo que el bot cuenta para vender
+- [ ] Decidir qué se reserva por el chat (`bookable_online`). Ahora sí: primera visita, quiropodia, pisada y plantillas, estudio de la carrera, revisión de plantillas y osteopatía. Los tratamientos (verrugas, ondas de choque, infiltración, PRP, cirugía de uña, IPK) se explican y se ofrece la primera visita
 - [ ] Confirmar que "Plantillas a medida" corresponde a "Exploración Biomecánica del Pie" en Docfav
 - [ ] Confirmar qué profesionales hacen cada servicio (uso interno: el paciente no lo ve)
 - [ ] Rellenar `bring` (qué traer) por servicio

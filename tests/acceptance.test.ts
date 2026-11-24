@@ -219,19 +219,29 @@ describe("8. Pregunta fuera de knowledge.md: no inventa, deriva", () => {
     const sid = await h.start();
     h.llm.say("La quiropodia cuesta {{precio:quiropodia}} y dura {{duracion:quiropodia}}. El horario: {{horario}}.");
     const r = await h.call("/chat", { sessionId: sid, text: "¿Cuánto cuesta la quiropodia?" });
-    expect(r.body.messages[0].text).toBe("La quiropodia cuesta 25 € y dura 15 min. El horario: consúltalo con el equipo.");
+    expect(r.body.messages[0].text).toBe("La quiropodia cuesta 25 € y dura 15 min."); // the sentence with the missing timetable is dropped
+  });
+});
+
+describe("8c. Contacto sin datos publicados", () => {
+  it("si el centro no tiene teléfono configurado, ofrece el formulario para que le llamen", async () => {
+    const h = harness({ cfg: (c) => { c.settings.center.phone = ""; c.settings.center.whatsapp = ""; c.settings.center.email = ""; } });
+    const sid = await h.start();
+    h.llm.tools(toolUse("show_contact", {}), toolUse("notify_staff", { reason: "human_request" })).say("Te paso con el equipo. Llama al {{telefono}}.");
+    const r = await h.call("/chat", { sessionId: sid, text: "quiero hablar con alguien" });
+    expect(r.body.messages[0].text).toBe("Te paso con el equipo.");
+    expect(r.body.messages.map((m: any) => m.ui?.type)).toEqual(["callback_form"]);
   });
 });
 
 describe("8b. No afirma que el centro no hace algo", () => {
-  it("el prompt lo prohíbe y aclara que la lista de servicios no es completa", async () => {
+  it("el prompt lo prohíbe", async () => {
     const h = harness();
     const sid = await h.start();
     h.llm.say("Eso te lo confirma el equipo.");
     await h.call("/chat", { sessionId: sid, text: "¿Hacéis masajes?" });
     const system = h.llm.requests[0].system[0].text;
     expect(system).toMatch(/Nunca digas que el centro NO hace/);
-    expect(system).toMatch(/no es la lista completa del centro/);
   });
 });
 
@@ -242,7 +252,7 @@ describe("9. Pregunta médica: no aconseja, ofrece valoración", () => {
     h.llm.tools(toolUse("notify_staff", { reason: "medical_question" })).say("Eso lo valora el profesional. ¿Te busco hueco para una valoración?");
     await h.call("/chat", { sessionId: sid, text: "¿Qué tomo para la fascitis?" });
     const system = h.llm.requests[0].system[0].text;
-    expect(system).toMatch(/No diagnosticas, no recomiendas tratamientos/);
+    expect(system).toMatch(/No diagnosticas ni recomiendas medicación/);
     expect(h.logger.lines.some((l) => l.includes('"derivation"') && l.includes("medical_question"))).toBe(true);
   });
 });

@@ -46,7 +46,7 @@ const panelHtml = `
     <summary>Panel de pruebas · lo que vería el centro</summary>
     <p id="demo-ai" class="muted">IA: …</p>
     <div class="row">
-      <label>Modelo <select id="demo-tier"><option value="quick">rápido</option><option value="default">completo (más lento)</option></select></label>
+      <label>Modelo <select id="demo-tier"><option value="default">completo (recomendado, tarda unos segundos)</option><option value="quick">rápido (respuestas más pobres)</option></select></label>
       <label><input type="checkbox" id="demo-down"> Simular Docfav caído</label>
     </div>
     <h4>Citas creadas en la agenda (simulada)</h4>

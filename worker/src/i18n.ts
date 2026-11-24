@@ -8,19 +8,19 @@ const T = {
     en: "Hi! I'm the Kalma and Stride Lab booking assistant. I can find you an appointment or answer questions about the centre. What do you need?",
   },
   agenda_down: {
-    es: "Ahora mismo no puedo acceder a la agenda. Por favor, contacta con el centro y te ayudamos.",
-    ca: "Ara mateix no puc accedir a l'agenda. Si us plau, contacta amb el centre i t'ajudarem.",
-    en: "I can't access the schedule right now. Please contact the centre and we'll help you.",
+    es: "Ahora mismo no puedo acceder a la agenda. El equipo te ayuda a reservar.",
+    ca: "Ara mateix no puc accedir a l'agenda. L'equip t'ajuda a reservar.",
+    en: "I can't access the schedule right now. The team can help you book.",
   },
   ai_down: {
-    es: "Ahora mismo no puedo responderte. Por favor, contacta con el centro y te ayudamos.",
-    ca: "Ara mateix no et puc respondre. Si us plau, contacta amb el centre i t'ajudarem.",
-    en: "I can't answer right now. Please contact the centre and we'll help you.",
+    es: "Ahora mismo no puedo responderte. El equipo te ayuda.",
+    ca: "Ara mateix no et puc respondre. L'equip t'ajuda.",
+    en: "I can't answer right now. The team can help you.",
   },
   team_confirms: {
-    es: "Eso te lo confirma el equipo. Puedes contactar con el centro:",
-    ca: "Això t'ho confirma l'equip. Pots contactar amb el centre:",
-    en: "The team will confirm that for you. You can contact the centre:",
+    es: "Eso te lo confirma el equipo.",
+    ca: "Això t'ho confirma l'equip.",
+    en: "The team will confirm that for you.",
   },
   slot_expired: {
     es: "Ese hueco ya no está disponible en esta conversación. Te enseño los huecos libres de nuevo.",
@@ -124,7 +124,6 @@ const T = {
     ca: "Pots reservar directament a la nostra agenda en línia:",
     en: "You can book directly in our online schedule:",
   },
-  unknown_value: { es: "consúltalo con el equipo", ca: "consulta-ho amb l'equip", en: "please ask the team" },
   price_free: { es: "a consultar", ca: "a consultar", en: "ask the team" },
 } as const satisfies Record<string, Record<Lang, string>>;
 

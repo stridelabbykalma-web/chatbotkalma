@@ -15,7 +15,10 @@ export interface ServiceConfig {
   docfav_service_id: string;
   brand: string;
   name: Localized;
-  summary: Localized;
+  /** What the service is, in Spanish (the AI translates). */
+  summary: string;
+  /** Typical reasons a patient needs it, in Spanish. */
+  for: string;
   professionals: string[];
   bookable_online: boolean;
   price_eur: number | null;
