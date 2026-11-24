@@ -67,6 +67,19 @@ export interface Settings {
   notify: { to_email: string; from_email: string; from_name: string };
   docfav: { clinic_id: string; calendar_id: string };
   staff: StaffConfig[];
+  /** Rooms or equipment shared by several professionals: never booked over capacity. */
+  resources?: ResourceConfig[];
+}
+
+export interface ResourceConfig {
+  key: string;
+  name: string;
+  /** How many can be in use at the same time (1 = one room). */
+  capacity: number;
+  /** Config service ids that need this resource. */
+  services: string[];
+  /** Other Docfav services (not offered by the chat) that also occupy it. */
+  extra_docfav_service_ids?: string[];
 }
 
 export interface AppConfig {
@@ -91,7 +104,7 @@ export function cleanKnowledge(md: string): string {
 
 export function loadConfig(): AppConfig {
   // Deep copies: nothing at runtime can modify the bundled configuration.
-  const { _comment, ...settings } = structuredClone(settingsJson) as Settings & { _comment?: string };
+  const { _comment, _comment_resources, ...settings } = structuredClone(settingsJson) as Settings & { _comment?: string; _comment_resources?: string };
   return {
     settings: settings as Settings,
     services: structuredClone((servicesJson as { services: ServiceConfig[] }).services),

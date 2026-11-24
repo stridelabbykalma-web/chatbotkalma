@@ -2,13 +2,20 @@
   "_comment": "Configuración del chatbot. Los campos vacíos (\"\") son datos pendientes: mientras falten, el bot no los inventa y deriva al equipo.",
   "center": {
     "name": "Centre Kalma",
-    "brands": ["Kalma Centre Terapèutic", "Stride Lab"],
+    "brands": [
+      "Kalma Centre Terapèutic",
+      "Stride Lab"
+    ],
     "address": "Rambla Onze de Setembre, 88, 17244 Cassà de la Selva (Girona)",
     "maps_url": "",
     "phone": "",
     "whatsapp": "",
     "email": "",
-    "hours": { "es": "", "ca": "", "en": "" }
+    "hours": {
+      "es": "",
+      "ca": "",
+      "en": ""
+    }
   },
   "booking": {
     "mode": "api",
@@ -66,5 +73,7 @@
       "staff_id": "a1afb68c-2392-4017-9af0-85758fb8f35e",
       "staff_calendar_id": "ee38efeb-8ccd-4a1a-9d05-4e556537d7b9"
     }
-  ]
+  ],
+  "_comment_resources": "Salas o aparatos compartidos. Un recurso con capacity 1 no se reserva dos veces a la vez, aunque sean profesionales distintos. services: ids de services.json que lo usan; extra_docfav_service_ids: otros servicios de Docfav que también lo ocupan. Ejemplo: {\"key\": \"sala_1\", \"name\": \"Sala 1\", \"capacity\": 1, \"services\": [\"quiropodia\", \"visita\"], \"extra_docfav_service_ids\": []}",
+  "resources": []
 }

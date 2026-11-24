@@ -113,7 +113,16 @@ export class DocfavApi implements DocfavClient {
     return { id: data.id };
   }
 
-  async listClientAppointments(clientId: string, fromIso: string, toIso: string): Promise<DfAppointment[]> {
+  listClientAppointments(clientId: string, fromIso: string, toIso: string): Promise<DfAppointment[]> {
+    return this.appointmentsBetween(fromIso, toIso, clientId);
+  }
+
+  listAppointments(fromIso: string, toIso: string): Promise<DfAppointment[]> {
+    return this.appointmentsBetween(fromIso, toIso);
+  }
+
+  /** GET /availability allows at most 7 days per call, so longer windows are split. */
+  private async appointmentsBetween(fromIso: string, toIso: string, clientId?: string): Promise<DfAppointment[]> {
     const out: DfAppointment[] = [];
     let start = Date.parse(fromIso);
     const end = Date.parse(toIso);
@@ -123,12 +132,12 @@ export class DocfavApi implements DocfavClient {
         query: {
           start_date: new Date(start).toISOString().replace(/\.\d{3}Z$/, "Z"),
           end_date: new Date(stop).toISOString().replace(/\.\d{3}Z$/, "Z"),
-          client_id: clientId,
+          ...(clientId ? { client_id: clientId } : {}),
           result_type: "appointments",
         },
       });
       for (const a of data.appointments ?? []) {
-        out.push({ id: a.id, from: a.booked_from, status: a.status ?? "", note: a.note ?? null });
+        out.push({ id: a.id, from: a.booked_from, to: a.booked_to, serviceId: a.service_id, status: a.status ?? "", note: a.note ?? null });
       }
       start = stop + 1000;
     }

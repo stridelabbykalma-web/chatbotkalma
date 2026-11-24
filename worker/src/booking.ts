@@ -68,6 +68,34 @@ export async function getCatalog(deps: Deps): Promise<{ entries: CatalogEntry[];
   return { entries, docfavOk };
 }
 
+// ---------- shared rooms / equipment ----------
+
+export function resourcesFor(cfg: AppConfig, serviceId: string) {
+  return (cfg.settings.resources ?? []).filter((r) => r.services.includes(serviceId));
+}
+
+type Usage = Map<string, [number, number][]>;
+
+/** Which intervals each resource is busy, from every appointment of the clinic in Docfav. */
+async function resourceUsage(deps: Deps, resources: ReturnType<typeof resourcesFor>, fromMs: number, toMs: number): Promise<Usage> {
+  const iso = (ms: number) => new Date(ms).toISOString().replace(/\.\d{3}Z$/, "Z");
+  const appts = await deps.docfav.listAppointments(iso(fromMs), iso(toMs));
+  const configIdOf = new Map(deps.cfg.services.map((s) => [s.docfav_service_id, s.id]));
+  const usage: Usage = new Map();
+  for (const r of resources) {
+    const busy = appts
+      .filter((a) => a.to && a.serviceId && !/cancel/i.test(a.status))
+      .filter((a) => r.services.includes(configIdOf.get(a.serviceId!) ?? "") || (r.extra_docfav_service_ids ?? []).includes(a.serviceId!))
+      .map((a) => [Date.parse(a.from), Date.parse(a.to!)] as [number, number]);
+    usage.set(r.key, busy);
+  }
+  return usage;
+}
+
+function resourcesFree(resources: ReturnType<typeof resourcesFor>, usage: Usage, startMs: number, endMs: number): boolean {
+  return resources.every((r) => (usage.get(r.key) ?? []).filter(([s, e]) => s < endMs && e > startMs).length < Math.max(1, r.capacity));
+}
+
 export function factsFrom(entries: CatalogEntry[]): ServiceFacts {
   return Object.fromEntries(entries.map((e) => [e.cfg.id, { priceEur: e.priceEur, durationMin: e.durationMin, priceLabel: e.cfg.price_label }]));
 }
@@ -169,6 +197,22 @@ export async function findSlots(
         from: fromIso,
         to: new Date(end).toISOString().replace(/\.\d{3}Z$/, "Z"),
       });
+    }
+  }
+
+  // Shared rooms / equipment: drop starts whose resource is already in use by anyone.
+  const resources = resourcesFor(deps.cfg, entry.cfg.id);
+  if (resources.length && candidates.length) {
+    try {
+      const fromMs = Date.parse(query.dateFrom + "T00:00:00Z") - 3 * 3600_000;
+      const toMs = Date.parse(query.dateTo + "T23:59:59Z") + 3 * 3600_000;
+      const usage = await resourceUsage(deps, resources, fromMs, toMs);
+      for (let i = candidates.length - 1; i >= 0; i--) {
+        if (!resourcesFree(resources, usage, Date.parse(candidates[i].from), Date.parse(candidates[i].to))) candidates.splice(i, 1);
+      }
+    } catch (e) {
+      deps.logger.event("docfav_error", { sid: session.id, tool: "listAppointments", code: e instanceof DocfavError ? e.code : "UNKNOWN" });
+      return { ok: false, error: "agenda_unavailable" };
     }
   }
 
@@ -367,7 +411,13 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
 
   // 1) Revalidate the slot just before writing.
   try {
-    const free = await deps.docfav.checkAvailability(slot.staffCalendarId, slot.from, slot.to);
+    let free = await deps.docfav.checkAvailability(slot.staffCalendarId, slot.from, slot.to);
+    const resources = resourcesFor(deps.cfg, slot.serviceId);
+    if (free && resources.length) {
+      const start = Date.parse(slot.from);
+      const end = Date.parse(slot.to);
+      free = resourcesFree(resources, await resourceUsage(deps, resources, start - 12 * 3600_000, end + 12 * 3600_000), start, end);
+    }
     if (!free) {
       deps.logger.event("slot_taken", { sid: session.id, service: slot.serviceId });
       return { session, outcome: { messages: await reoffer(deps, session, "slot_taken", [slot]), booked: false, historyNote: "El hueco se ocupó antes de confirmar; se han ofrecido otros." } };

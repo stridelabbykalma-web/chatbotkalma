@@ -81,4 +81,12 @@ describe("Docfav Public API v1 client", () => {
     expect(g.calls).toHaveLength(3);
     expect(g.calls[0].url).toContain("result_type=appointments");
   });
+
+  it("lists every clinic appointment with service and end time (for shared rooms)", async () => {
+    const f = fakeFetch([ok({ appointments: [{ id: "a", booked_from: "2026-11-25T09:00:00Z", booked_to: "2026-11-25T09:30:00Z", service_id: "s1", status: "confirmed", note: null }] })]);
+    const api = new DocfavApi("k", CLINIC, CAL, f.fn);
+    const list = await api.listAppointments("2026-11-25T00:00:00Z", "2026-11-26T00:00:00Z");
+    expect(list).toEqual([{ id: "a", from: "2026-11-25T09:00:00Z", to: "2026-11-25T09:30:00Z", serviceId: "s1", status: "confirmed", note: null }]);
+    expect(f.calls[0].url).not.toContain("client_id");
+  });
 });

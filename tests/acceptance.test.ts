@@ -474,6 +474,74 @@ describe("CatSalut: pendiente de revisión y aviso al centro", () => {
   });
 });
 
+describe("Salas y recursos compartidos", () => {
+  const VISITA = "7f94dea1-fa86-4195-8564-fe2dee3e2f26";
+  const ROOM = { key: "sala_1", name: "Sala 1", capacity: 1, services: ["quiropodia", "visita"] };
+  function busyRoom(h: ReturnType<typeof harness>, status = "confirmed", serviceId = VISITA) {
+    // Matilde has a visit 13:00-13:30 (Madrid) in the shared room; Abraham is free then.
+    h.docfav.appointments.push({ id: "ext-1", clientId: "x", serviceId, staffCalendarId: h.cfg.settings.staff[1].staff_calendar_id, from: "2026-11-24T12:00:00Z", to: "2026-11-24T12:30:00Z", note: "", behaviour: status as any, sendReminder: true });
+  }
+  const labels = (r: any) => r.body.messages.find((m: any) => m.ui?.type === "slots")?.ui.slots.map((s: any) => s.label) ?? [];
+
+  async function search(h: ReturnType<typeof harness>) {
+    const sid = await h.start();
+    h.llm.tools(toolUse("get_availability", { service_id: "quiropodia" })).say("Elige.");
+    return { sid, r: await h.call("/chat", { sessionId: sid, text: "quiropodia" }) };
+  }
+
+  it("sin recursos configurados, otro profesional puede tener la misma hora", async () => {
+    const h = harness();
+    busyRoom(h);
+    const { r } = await search(h);
+    expect(labels(r)[0]).toBe("Martes 24/11 a las 13:00");
+  });
+
+  it("con una sala de capacidad 1, no ofrece la hora en que la sala ya está ocupada por otro profesional", async () => {
+    const h = harness({ cfg: (c) => (c.settings.resources = [ROOM]) });
+    busyRoom(h);
+    const { r } = await search(h);
+    expect(labels(r)).not.toContain("Martes 24/11 a las 13:00");
+    expect(labels(r).length).toBeGreaterThan(0);
+  });
+
+  it("con capacidad 2 sí la ofrece; una cita anulada no ocupa la sala", async () => {
+    const h2 = harness({ cfg: (c) => (c.settings.resources = [{ ...ROOM, capacity: 2 }]) });
+    busyRoom(h2);
+    expect(labels((await search(h2)).r)[0]).toBe("Martes 24/11 a las 13:00");
+    const hc = harness({ cfg: (c) => (c.settings.resources = [ROOM]) });
+    busyRoom(hc, "cancelled");
+    expect(labels((await search(hc)).r)[0]).toBe("Martes 24/11 a las 13:00");
+  });
+
+  it("también cuenta servicios de Docfav que el chat no ofrece (extra_docfav_service_ids)", async () => {
+    const OTHER = "2797cf82-f5d2-473d-a1a5-1cba6f9dabff";
+    const h = harness({ cfg: (c) => (c.settings.resources = [{ ...ROOM, extra_docfav_service_ids: [OTHER] }]) });
+    busyRoom(h, "confirmed", OTHER);
+    expect(labels((await search(h)).r)).not.toContain("Martes 24/11 a las 13:00");
+  });
+
+  it("al confirmar vuelve a comprobar la sala: si otro la ha ocupado, no reserva y ofrece otros huecos", async () => {
+    const h = harness({ cfg: (c) => (c.settings.resources = [ROOM]) });
+    const sid = await h.start();
+    const { token, slot } = await bookUntilSummary(h, sid);
+    expect(slot.label).toBe("Martes 24/11 a las 13:00");
+    busyRoom(h); // someone books the room from Docfav meanwhile
+    const r = await h.call("/action", { sessionId: sid, action: { type: "confirm", token } });
+    expect(r.body.messages[0].text).toMatch(/se acaba de ocupar/);
+    expect(h.docfav.appointments.filter((a) => a.id !== "ext-1")).toHaveLength(0);
+  });
+
+  it("si no se pueden leer las citas para comprobar la sala, no ofrece huecos a ciegas", async () => {
+    const h = harness({ cfg: (c) => (c.settings.resources = [ROOM]) });
+    h.docfav.listAppointments = async () => {
+      throw new Error("down");
+    };
+    const { r } = await search(h);
+    expect(labels(r)).toEqual([]);
+    expect(JSON.stringify(h.llm.requests[1].messages.at(-1))).toContain("agenda_unavailable");
+  });
+});
+
 describe("Notas de voz", () => {
   async function voice(h: ReturnType<typeof harness>, sid: string, bytes: number, type = "audio/webm") {
     const res = await h.app.handle(

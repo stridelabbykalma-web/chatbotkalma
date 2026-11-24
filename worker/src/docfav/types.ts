@@ -29,6 +29,8 @@ export interface DfClientHit {
 export interface DfAppointment {
   id: string;
   from: string;
+  to?: string;
+  serviceId?: string;
   status: string;
   note: string | null;
 }
@@ -67,6 +69,8 @@ export interface DocfavClient {
   createClient(c: NewClient): Promise<{ id: string }>;
   /** Appointments of a client between two UTC instants (the API caps each call at 7 days). */
   listClientAppointments(clientId: string, fromIso: string, toIso: string): Promise<DfAppointment[]>;
+  /** Every appointment of the clinic between two UTC instants (all staff, any channel). */
+  listAppointments(fromIso: string, toIso: string): Promise<DfAppointment[]>;
   createAppointment(a: NewAppointment): Promise<{ id: string }>;
 }
 

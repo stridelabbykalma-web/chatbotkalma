@@ -123,6 +123,13 @@ export class DocfavMock implements DocfavClient {
       .map((a) => ({ id: a.id, from: a.from, status: a.behaviour, note: a.note }));
   }
 
+  async listAppointments(fromIso: string, toIso: string): Promise<DfAppointment[]> {
+    this.guard("listAppointments");
+    return this.appointments
+      .filter((a) => a.from < toIso && a.to > fromIso)
+      .map((a) => ({ id: a.id, from: a.from, to: a.to, serviceId: a.serviceId, status: a.behaviour, note: a.note }));
+  }
+
   async createAppointment(a: NewAppointment): Promise<{ id: string }> {
     this.guard("createAppointment");
     if (this.failCreateAppointment) throw new DocfavError("INTERNAL_ERROR", 500, true);
@@ -144,6 +151,7 @@ export class DryRunDocfav implements DocfavClient {
   checkAvailability(s: string, f: string, t: string) { return this.inner.checkAvailability(s, f, t); }
   searchClients(k: string) { return this.inner.searchClients(k); }
   listClientAppointments(c: string, f: string, t: string) { return this.inner.listClientAppointments(c, f, t); }
+  listAppointments(f: string, t: string) { return this.inner.listAppointments(f, t); }
   async createClient(_c: NewClient) {
     this.writes.push("createClient");
     return { id: "dry-run-client" };
