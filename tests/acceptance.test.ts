@@ -223,6 +223,18 @@ describe("8. Pregunta fuera de knowledge.md: no inventa, deriva", () => {
   });
 });
 
+describe("8b. No afirma que el centro no hace algo", () => {
+  it("el prompt lo prohíbe y aclara que la lista de servicios no es completa", async () => {
+    const h = harness();
+    const sid = await h.start();
+    h.llm.say("Eso te lo confirma el equipo.");
+    await h.call("/chat", { sessionId: sid, text: "¿Hacéis masajes?" });
+    const system = h.llm.requests[0].system[0].text;
+    expect(system).toMatch(/Nunca digas que el centro NO hace/);
+    expect(system).toMatch(/no es la lista completa del centro/);
+  });
+});
+
 describe("9. Pregunta médica: no aconseja, ofrece valoración", () => {
   it("el prompt lo prohíbe y la derivación queda registrada con su motivo (comportamiento real: npm run eval)", async () => {
     const h = harness();
