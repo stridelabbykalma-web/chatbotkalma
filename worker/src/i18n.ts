@@ -78,6 +78,16 @@ const T = {
     ca: "(MODE PROVA: la cita NO s'ha creat a Docfav.)",
     en: "(TEST MODE: the appointment was NOT created in Docfav.)",
   },
+  summary_review: {
+    es: "Queda pendiente de revisión: el centro comprobará tu derivación del CAP y te llamará para confirmarla.",
+    ca: "Queda pendent de revisió: el centre comprovarà la teva derivació del CAP i et trucarà per confirmar-la.",
+    en: "Pending review: the centre will check your CAP referral and call you to confirm it.",
+  },
+  booked_review: {
+    es: "¡Hecho! Te hemos guardado {slot} · {service}, pendiente de revisión. El centro comprobará tu derivación del CAP y te llamará para confirmarla. Dirección: {address}.",
+    ca: "Fet! T'hem guardat {slot} · {service}, pendent de revisió. El centre comprovarà la teva derivació del CAP i et trucarà per confirmar-la. Adreça: {address}.",
+    en: "Done! We've held {slot} · {service}, pending review. The centre will check your CAP referral and call you to confirm it. Address: {address}.",
+  },
   bring: { es: "Qué traer: {text}", ca: "Què portar: {text}", en: "What to bring: {text}" },
   booked_footer: {
     es: "Te llegará un mensaje de confirmación con un enlace por si necesitas anularla.",

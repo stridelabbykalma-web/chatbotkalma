@@ -52,7 +52,8 @@ No tiene ninguna para buscar pacientes ni para crear, anular o leer citas. Por d
    - Está activado el *fallback* del servidor de Anthropic: si el modelo rechaza una petición por sus filtros de seguridad, la repite con otro modelo en vez de dejar al paciente sin respuesta.
 7. **Antelación mínima para reservar: 2 h** (`booking.min_lead_hours`). El plazo para anular lo aplica Docfav, no el bot.
 8. **Nunca se dice qué profesional atiende.** El código reparte cada hueco entre los profesionales de `services.json` que tienen ese hueco libre y se lo pasa a Docfav, pero el paciente solo ve día y hora: ni en los botones, ni en el resumen, ni en la confirmación. La IA tampoco conoce los nombres ni puede elegir profesional. Si aun así escribe el nombre de alguien del equipo, el mensaje se descarta. Si el paciente pide a alguien en concreto, se le indica que lo pida llamando al centro.
-9. **Plan B incluido.** Con `booking.mode = "portal"` y `booking.portal_url`, el bot abre la agenda online de Docfav dentro del chat en vez de reservar él.
+9. **CatSalut pendiente de revisión.** El servicio "Cat Salut" de Docfav (0 €) solo vale para quien tiene sesiones concedidas por su médico del CAP. El bot lo ofrece cuando el paciente dice que viene derivado o pregunta por la Seguridad Social, nunca dice "0 €" (dice "a cargo de CatSalut") y la cita se crea en Docfav como **pendiente** con la nota "PENDIENTE DE REVISAR". Al confirmar, el centro recibe un email con nombre, móvil, email, día y hora para llamar al paciente. Lo impone el código (`requires_review` en `services.json`), no el prompt. Requiere `notify.to_email` y Brevo configurados.
+10. **Plan B incluido.** Con `booking.mode = "portal"` y `booking.portal_url`, el bot abre la agenda online de Docfav dentro del chat en vez de reservar él.
 
 ## Lo que se ha comprobado en Docfav
 

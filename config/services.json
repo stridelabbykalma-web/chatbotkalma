@@ -1,161 +1,328 @@
 {
-  "_comment": "Catálogo que conoce el bot. Precio y duración: si price_eur / duration_min son null se usan los de Docfav. bookable_online: true = se reserva por el chat; false = el bot lo explica y ofrece reservar la primera visita. professionals: claves de settings.json > staff (uso interno, el paciente no lo ve). summary y for: lo que el bot cuenta del servicio (en castellano; el bot traduce). REVISAR TODO ESTE ARCHIVO.",
+  "_comment": "Catálogo que conoce el bot. Precio y duración: si price_eur / duration_min son null se usan los de Docfav. bookable_online: true = se reserva por el chat; false = el bot lo explica y ofrece reservar la primera visita. professionals: claves de settings.json > staff (uso interno, el paciente no lo ve). summary y for: lo que el bot cuenta del servicio (en castellano; el bot traduce). REVISAR TODO ESTE ARCHIVO. requires_review: la cita se crea como pendiente en Docfav y se avisa al centro por email. price_label: texto que se muestra en lugar del precio.",
   "services": [
     {
       "id": "visita",
       "docfav_service_id": "7f94dea1-fa86-4195-8564-fe2dee3e2f26",
       "brand": "Kalma",
-      "name": { "es": "Primera visita de podología", "ca": "Primera visita de podologia", "en": "First podiatry visit" },
+      "name": {
+        "es": "Primera visita de podología",
+        "ca": "Primera visita de podologia",
+        "en": "First podiatry visit"
+      },
       "summary": "El podólogo estudia el problema del pie, explica qué pasa y propone el tratamiento. Es la puerta de entrada cuando no está claro qué servicio hace falta.",
       "for": "cualquier dolor o molestia en el pie, uñas encarnadas o con hongos, verrugas, durezas dolorosas, dolor de talón, juanetes, heridas que no curan, o cuando no sabe qué necesita",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": true,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
+    },
+    {
+      "id": "catsalut",
+      "docfav_service_id": "6a16fd66-89a6-472f-b419-3e3322cdfd02",
+      "brand": "Kalma",
+      "name": {
+        "es": "Visita con derivación de CatSalut (CAP)",
+        "ca": "Visita amb derivació de CatSalut (CAP)",
+        "en": "CatSalut-referred visit (CAP)"
+      },
+      "summary": "Visita de podología pagada por CatSalut (la sanidad pública) para quien tiene sesiones de podología concedidas por su médico del CAP. La reserva queda pendiente: el centro comprueba la derivación y llama al paciente para confirmarla.",
+      "for": "personas a las que su médico de cabecera del CAP ha derivado al podólogo y tienen sesiones de CatSalut disponibles (por ejemplo, pacientes diabéticos)",
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
+      "bookable_online": true,
+      "requires_review": true,
+      "price_label": {
+        "es": "a cargo de CatSalut (si tienes derivación del CAP; pendiente de revisar)",
+        "ca": "a càrrec de CatSalut (si tens derivació del CAP; pendent de revisar)",
+        "en": "paid by CatSalut (if you have a CAP referral; pending review)"
+      },
+      "price_eur": null,
+      "duration_min": null,
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "quiropodia",
       "docfav_service_id": "b42a1fec-80d7-4015-b92a-f877a31da7ed",
       "brand": "Kalma",
-      "name": { "es": "Quiropodia", "ca": "Quiropòdia", "en": "Chiropody" },
+      "name": {
+        "es": "Quiropodia",
+        "ca": "Quiropòdia",
+        "en": "Chiropody"
+      },
       "summary": "Cuidado completo del pie por un podólogo: corte y fresado de uñas y eliminación de durezas y callos.",
       "for": "uñas gruesas o difíciles de cortar, durezas, callos, mantenimiento periódico del pie, personas mayores o con diabetes",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": true,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "plantillas",
       "docfav_service_id": "a2cf06ac-a659-4fb7-bf67-06e097f17ecf",
       "brand": "Kalma",
-      "name": { "es": "Estudio de la pisada y plantillas a medida", "ca": "Estudi de la petjada i plantilles a mida", "en": "Gait assessment and custom insoles" },
+      "name": {
+        "es": "Estudio de la pisada y plantillas a medida",
+        "ca": "Estudi de la petjada i plantilles a mida",
+        "en": "Gait assessment and custom insoles"
+      },
       "summary": "Exploración biomecánica del pie y de la pisada. Si hacen falta, se diseñan plantillas a medida.",
       "for": "dolor de pies, rodillas, caderas o espalda que puede venir de la pisada, pies planos o cavos, dolor de talón o de la planta, niños con problemas al caminar, deportistas",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": true,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "estudio_biomecanico",
       "docfav_service_id": "6c8c843b-5e18-4b82-9691-1efec9cabd0b",
       "brand": "Stride Lab",
-      "name": { "es": "Estudio biomecánico de la carrera (MotionMetrix G2)", "ca": "Estudi biomecànic de la cursa (MotionMetrix G2)", "en": "Running biomechanics study (MotionMetrix G2)" },
+      "name": {
+        "es": "Estudio biomecánico de la carrera (MotionMetrix G2)",
+        "ca": "Estudi biomecànic de la cursa (MotionMetrix G2)",
+        "en": "Running biomechanics study (MotionMetrix G2)"
+      },
       "summary": "Análisis de la técnica de carrera en cinta con el sistema MotionMetrix G2: pisada, cadencia, impacto y técnica, con un informe y recomendaciones personalizadas.",
       "for": "corredores que quieren mejorar su técnica o rendimiento, prevenir lesiones, tienen molestias al correr o quieren elegir bien sus zapatillas",
-      "professionals": ["abraham"],
+      "professionals": [
+        "abraham"
+      ],
       "bookable_online": true,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "revision_plantillas",
       "docfav_service_id": "34580ad7-e911-4405-89bb-fd39538d7dee",
       "brand": "Kalma",
-      "name": { "es": "Revisión de plantillas", "ca": "Revisió de plantilles", "en": "Insole check-up" },
+      "name": {
+        "es": "Revisión de plantillas",
+        "ca": "Revisió de plantilles",
+        "en": "Insole check-up"
+      },
       "summary": "Revisión y ajuste de unas plantillas ya hechas.",
       "for": "plantillas que molestan, están gastadas o toca su revisión periódica",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": true,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "osteopatia",
       "docfav_service_id": "528840d7-5797-4176-b98a-7a954a3e5c98",
       "brand": "Kalma",
-      "name": { "es": "Osteopatía", "ca": "Osteopatia", "en": "Osteopathy" },
+      "name": {
+        "es": "Osteopatía",
+        "ca": "Osteopatia",
+        "en": "Osteopathy"
+      },
       "summary": "Sesión de osteopatía: terapia manual para molestias musculares y articulares.",
       "for": "dolor o tensión de espalda, cuello u hombros, contracturas, molestias articulares",
-      "professionals": ["jose_antonio"],
+      "professionals": [
+        "jose_antonio"
+      ],
       "bookable_online": true,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "verrugas_plantares",
       "docfav_service_id": "072b9205-237a-4307-9ca1-2b85c98e7b7f",
       "brand": "Kalma",
-      "name": { "es": "Tratamiento de verrugas plantares", "ca": "Tractament de berrugues plantars", "en": "Plantar wart treatment" },
+      "name": {
+        "es": "Tratamiento de verrugas plantares",
+        "ca": "Tractament de berrugues plantars",
+        "en": "Plantar wart treatment"
+      },
       "summary": "Tratamiento de las verrugas de la planta del pie. Primero se confirma en una primera visita.",
       "for": "verrugas o lesiones en la planta del pie que molestan al caminar",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": false,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "ondas_choque",
       "docfav_service_id": "42444742-fa67-4286-b2dd-be503bea785c",
       "brand": "Kalma",
-      "name": { "es": "Ondas de choque", "ca": "Ones de xoc", "en": "Shockwave therapy" },
+      "name": {
+        "es": "Ondas de choque",
+        "ca": "Ones de xoc",
+        "en": "Shockwave therapy"
+      },
       "summary": "Sesiones de ondas de choque. Las indica el podólogo después de valorar el caso en una primera visita.",
       "for": "algunas lesiones de tendones y de la fascia plantar, según valore el profesional",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": false,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "infiltracion",
       "docfav_service_id": "4f110472-1405-4ffb-b7a6-bff08301115b",
       "brand": "Kalma",
-      "name": { "es": "Infiltración", "ca": "Infiltració", "en": "Injection" },
+      "name": {
+        "es": "Infiltración",
+        "ca": "Infiltració",
+        "en": "Injection"
+      },
       "summary": "Infiltración en el pie. Se indica solo después de una primera visita.",
       "for": "casos concretos que decide el profesional",
-      "professionals": ["matilde"],
+      "professionals": [
+        "matilde"
+      ],
       "bookable_online": false,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "prp",
       "docfav_service_id": "bf118c9b-7c1f-4163-aa8c-90d753e479e1",
       "brand": "Kalma",
-      "name": { "es": "Plasma rico en plaquetas (PRP)", "ca": "Plasma ric en plaquetes (PRP)", "en": "Platelet-rich plasma (PRP)" },
+      "name": {
+        "es": "Plasma rico en plaquetas (PRP)",
+        "ca": "Plasma ric en plaquetes (PRP)",
+        "en": "Platelet-rich plasma (PRP)"
+      },
       "summary": "Tratamiento con plasma rico en plaquetas. Se indica solo después de una primera visita.",
       "for": "casos concretos que decide el profesional",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": false,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "cirugia_ungueal",
       "docfav_service_id": "fb80618d-c36f-4321-be1e-2b9ed5bcaa13",
       "brand": "Kalma",
-      "name": { "es": "Cirugía de uña (uña encarnada)", "ca": "Cirurgia d'ungla (ungla encarnada)", "en": "Nail surgery (ingrown toenail)" },
+      "name": {
+        "es": "Cirugía de uña (uña encarnada)",
+        "ca": "Cirurgia d'ungla (ungla encarnada)",
+        "en": "Nail surgery (ingrown toenail)"
+      },
       "summary": "Pequeña cirugía de la uña, por ejemplo para uñas encarnadas que se repiten. Se decide en una primera visita.",
       "for": "uñas encarnadas que vuelven una y otra vez",
-      "professionals": ["matilde"],
+      "professionals": [
+        "matilde"
+      ],
       "bookable_online": false,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     },
     {
       "id": "exeresis_ipk",
       "docfav_service_id": "439cb1db-1fcc-4bd4-bc12-8aa118937383",
       "brand": "Kalma",
-      "name": { "es": "Exéresis de IPK (callo profundo)", "ca": "Exèresi d'IPK (call profund)", "en": "IPK removal (deep callus)" },
+      "name": {
+        "es": "Exéresis de IPK (callo profundo)",
+        "ca": "Exèresi d'IPK (call profund)",
+        "en": "IPK removal (deep callus)"
+      },
       "summary": "Extirpación de un callo profundo y doloroso en la planta del pie (IPK). Se decide en una primera visita.",
       "for": "un callo muy doloroso en la planta que vuelve aunque se quite",
-      "professionals": ["abraham", "matilde", "jose_antonio"],
+      "professionals": [
+        "abraham",
+        "matilde",
+        "jose_antonio"
+      ],
       "bookable_online": false,
       "price_eur": null,
       "duration_min": null,
-      "bring": { "es": "", "ca": "", "en": "" }
+      "bring": {
+        "es": "",
+        "ca": "",
+        "en": ""
+      }
     }
   ]
 }

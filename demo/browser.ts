@@ -104,6 +104,7 @@ const docfav = new DocfavMock(
     { id: "a2cf06ac-a659-4fb7-bf67-06e097f17ecf", name: "Exploración Biomecánica del Pie", amountCents: 5000, durationMin: 30, isActive: true, staffCalendarIds: all },
     { id: "b42a1fec-80d7-4015-b92a-f877a31da7ed", name: "Quiropodia", amountCents: 2500, durationMin: 15, isActive: true, staffCalendarIds: all },
     { id: "34580ad7-e911-4405-89bb-fd39538d7dee", name: "Revisión Plantillas", amountCents: 4000, durationMin: 30, isActive: true, staffCalendarIds: all },
+    { id: "6a16fd66-89a6-472f-b419-3e3322cdfd02", name: "Cat Salut", amountCents: 0, durationMin: 30, isActive: true, staffCalendarIds: all },
     { id: "7f94dea1-fa86-4195-8564-fe2dee3e2f26", name: "Visita", amountCents: 5000, durationMin: 30, isActive: true, staffCalendarIds: all },
     { id: "528840d7-5797-4176-b98a-7a954a3e5c98", name: "Osteopatia", amountCents: 7000, durationMin: 40, isActive: true, staffCalendarIds: [cal("jose_antonio")] },
     { id: "072b9205-237a-4307-9ca1-2b85c98e7b7f", name: "Verrugas Plantares", amountCents: 6000, durationMin: 30, isActive: true, staffCalendarIds: all },

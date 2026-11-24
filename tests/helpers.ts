@@ -19,6 +19,7 @@ export function realLikeServices(cfg: AppConfig) {
     { id: "a2cf06ac-a659-4fb7-bf67-06e097f17ecf", name: "Exploración Biomecánica del Pie", amountCents: 5000, durationMin: 30, isActive: true, staffCalendarIds: all },
     { id: "b42a1fec-80d7-4015-b92a-f877a31da7ed", name: "Quiropodia", amountCents: 2500, durationMin: 15, isActive: true, staffCalendarIds: all },
     { id: "34580ad7-e911-4405-89bb-fd39538d7dee", name: "Revisión Plantillas", amountCents: 4000, durationMin: 30, isActive: true, staffCalendarIds: all },
+    { id: "6a16fd66-89a6-472f-b419-3e3322cdfd02", name: "Cat Salut", amountCents: 0, durationMin: 30, isActive: true, staffCalendarIds: all },
   ];
 }
 

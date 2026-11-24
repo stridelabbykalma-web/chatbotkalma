@@ -35,6 +35,7 @@ const docfav = new DocfavMock(
     ["b42a1fec-80d7-4015-b92a-f877a31da7ed", "Quiropodia", 2500, 15, all],
     ["34580ad7-e911-4405-89bb-fd39538d7dee", "Revisión Plantillas", 4000, 30, all],
     ["7f94dea1-fa86-4195-8564-fe2dee3e2f26", "Visita", 5000, 30, all],
+    ["6a16fd66-89a6-472f-b419-3e3322cdfd02", "Cat Salut", 0, 30, all],
     ["528840d7-5797-4176-b98a-7a954a3e5c98", "Osteopatia", 7000, 40, [cal("jose_antonio")]],
     ["072b9205-237a-4307-9ca1-2b85c98e7b7f", "Verrugas Plantares", 6000, 30, all],
     ["42444742-fa67-4286-b2dd-be503bea785c", "Ondas de choque", 2000, 15, all],

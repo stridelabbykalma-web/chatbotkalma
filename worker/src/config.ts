@@ -24,6 +24,10 @@ export interface ServiceConfig {
   price_eur: number | null;
   duration_min: number | null;
   bring: Localized;
+  /** Booked as "pending" in Docfav and the centre is emailed to check it (e.g. CatSalut). */
+  requires_review?: boolean;
+  /** Shown instead of the price (e.g. "cubierto por CatSalut"). */
+  price_label?: Localized;
 }
 
 export interface Settings {

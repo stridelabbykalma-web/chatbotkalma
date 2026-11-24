@@ -4,7 +4,7 @@ import { t } from "./i18n";
 
 export interface ServiceFacts {
   /** config service id -> { priceEur, durationMin } (merged from services.json and Docfav) */
-  [serviceId: string]: { priceEur: number | null; durationMin: number | null };
+  [serviceId: string]: { priceEur: number | null; durationMin: number | null; priceLabel?: Partial<Record<Lang, string>> };
 }
 
 export function formatPrice(eur: number | null, lang: Lang): string {
@@ -59,6 +59,7 @@ function fillPlaceholders(text: string, cfg: AppConfig, facts: ServiceFacts, lan
       case "precio":
       case "price": {
         const f = arg ? facts[arg] : undefined;
+        if (f?.priceLabel) return f.priceLabel[lang] || f.priceLabel.es || unknown;
         return f ? formatPrice(f.priceEur, lang) : unknown;
       }
       case "duracion":

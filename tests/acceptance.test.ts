@@ -428,6 +428,52 @@ describe("Nunca se dice qué profesional atiende", () => {
   });
 });
 
+describe("CatSalut: pendiente de revisión y aviso al centro", () => {
+  it("se reserva como pendiente, sin decir 0 €, y avisa al centro con los datos para llamar", async () => {
+    const h = harness();
+    const sid = await h.start();
+    const { summary, token } = await bookUntilSummary(h, sid, "catsalut");
+    const lines = summary.lines.join(" ");
+    expect(lines).toMatch(/a cargo de CatSalut/);
+    expect(lines).toMatch(/pendiente de revisión/);
+    expect(lines).not.toMatch(/0 €|a consultar/);
+
+    const r = await h.call("/action", { sessionId: sid, action: { type: "confirm", token } });
+    expect(r.body.messages[0].text).toMatch(/pendiente de revisión/);
+    expect(r.body.messages[0].text).not.toMatch(/Reserva hecha/);
+
+    const appt = h.docfav.appointments[0];
+    expect(appt.behaviour).toBe("pending");
+    expect(appt.note).toMatch(/^Reserva desde Chat web · PENDIENTE DE REVISAR/);
+
+    expect(h.mailer.sent).toHaveLength(1);
+    const mail = h.mailer.sent[0];
+    expect(mail.subject).toMatch(/CatSalut PENDIENTE DE REVISAR/);
+    expect(mail.text).toContain("Laura Martí Soler");
+    expect(mail.text).toContain("+34612345678");
+    expect(mail.text).toContain("laura.marti@example.com");
+    expect(mail.text).toMatch(/Martes 24\/11 a las 13:00/);
+  });
+
+  it("los demás servicios siguen confirmados y sin aviso", async () => {
+    const h = harness();
+    const sid = await h.start();
+    const { token } = await bookUntilSummary(h, sid, "quiropodia");
+    await h.call("/action", { sessionId: sid, action: { type: "confirm", token } });
+    expect(h.docfav.appointments[0].behaviour).toBe("confirmed");
+    expect(h.mailer.sent).toHaveLength(0);
+  });
+
+  it("la IA nunca recibe 0 € para CatSalut: el marcador pone el texto de cobertura", async () => {
+    const h = harness();
+    const sid = await h.start();
+    h.llm.say("Si tu médico del CAP te ha dado sesiones, la visita va {{precio:catsalut}}.");
+    const r = await h.call("/chat", { sessionId: sid, text: "lo cubre la seguridad social?" });
+    expect(r.body.messages[0].text).toBe("Si tu médico del CAP te ha dado sesiones, la visita va a cargo de CatSalut (si tienes derivación del CAP; pendiente de revisar).");
+    expect(h.llm.requests[0].system[0].text).toMatch(/# CatSalut/);
+  });
+});
+
 describe("Notas de voz", () => {
   async function voice(h: ReturnType<typeof harness>, sid: string, bytes: number, type = "audio/webm") {
     const res = await h.app.handle(

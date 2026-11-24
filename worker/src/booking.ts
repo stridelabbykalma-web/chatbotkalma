@@ -69,7 +69,7 @@ export async function getCatalog(deps: Deps): Promise<{ entries: CatalogEntry[];
 }
 
 export function factsFrom(entries: CatalogEntry[]): ServiceFacts {
-  return Object.fromEntries(entries.map((e) => [e.cfg.id, { priceEur: e.priceEur, durationMin: e.durationMin }]));
+  return Object.fromEntries(entries.map((e) => [e.cfg.id, { priceEur: e.priceEur, durationMin: e.durationMin, priceLabel: e.cfg.price_label }]));
 }
 
 export type AvailabilityResult =
@@ -307,10 +307,12 @@ export async function submitContact(deps: Deps, session: SessionState, input: un
 
   const { entries } = await getCatalog(deps);
   const entry = entries.find((e) => e.cfg.id === slot.serviceId);
+  const priceText = entry?.cfg.price_label ? entry.cfg.price_label[lang] || entry.cfg.price_label.es : formatPrice(entry?.priceEur ?? null, lang);
   const lines = [
     `${labelFor(deps, slot, lang)} · ${entry ? serviceName(entry.cfg, lang) : slot.serviceId} · ${deps.cfg.settings.center.name}`,
-    t(lang, "summary_price", { price: formatPrice(entry?.priceEur ?? null, lang) }),
+    t(lang, "summary_price", { price: priceText }),
     t(lang, "summary_for", { name: `${c.firstName} ${c.lastName}` }),
+    ...(entry?.cfg.requires_review ? [t(lang, "summary_review")] : []),
   ];
   deps.logger.event("summary_shown", { sid: session.id, service: slot.serviceId });
   return [{ text: t(lang, "summary_intro"), ui: { type: "summary", token, lines } }];
@@ -394,7 +396,8 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
     return { session, outcome: { messages: [contactMessage(deps, t(lang, "booking_failed"))], booked: false, historyNote: "La reserva ha fallado; no se ha creado ninguna cita." } };
   }
 
-  // 3) Appointment.
+  // 3) Appointment. Services that need review (CatSalut) are always created as pending.
+  const review = !!entry.cfg.requires_review;
   try {
     await deps.docfav.createAppointment({
       clientId,
@@ -402,8 +405,8 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
       staffCalendarId: slot.staffCalendarId,
       from: slot.from,
       to: slot.to,
-      note: b.appointment_note,
-      behaviour: b.appointment_behaviour,
+      note: review ? `${b.appointment_note} · PENDIENTE DE REVISAR: ${serviceName(entry.cfg, "es")}` : b.appointment_note,
+      behaviour: review ? "pending" : b.appointment_behaviour,
       sendReminder: b.send_reminder,
     });
   } catch (e) {
@@ -427,6 +430,16 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
   }
 
   // 4) Success.
+  if (review) {
+    const sent = await deps.mailer.send({
+      reason: "review_required",
+      name: `${contact.firstName} ${contact.lastName}`,
+      phone: contact.phone,
+      email: contact.email,
+      extra: `${slotLabel(slot.from, b.timezone, "es")} · ${serviceName(entry.cfg, "es")} · ${staffName(deps, slot.staffKey)}. Cita creada como PENDIENTE en Docfav.`,
+    });
+    deps.logger.event("review_requested", { sid: session.id, service: slot.serviceId, ok: sent });
+  }
   if (contact.staffNote) {
     await deps.mailer.send({
       reason: "contact_check",
@@ -443,17 +456,19 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
   deps.logger.event("appointment_created", { sid: session.id, service: slot.serviceId, mode: deps.dryRun ? "dry_run" : "live" });
 
   const label = labelFor(deps, slot, lang);
-  const parts = [t(lang, "booked", { slot: label, service: serviceName(entry.cfg, lang), address: deps.cfg.settings.center.address })];
+  const parts = [t(lang, review ? "booked_review" : "booked", { slot: label, service: serviceName(entry.cfg, lang), address: deps.cfg.settings.center.address })];
   const bring = entry.cfg.bring[lang] || entry.cfg.bring.es;
   if (bring) parts.push(t(lang, "bring", { text: bring }));
-  parts.push(t(lang, "booked_footer"));
+  if (!review) parts.push(t(lang, "booked_footer"));
   if (deps.dryRun) parts.push(t(lang, "booked_dry_run"));
   return {
     session,
     outcome: {
       messages: [{ text: parts.join("\n") }],
       booked: true,
-      historyNote: `Cita creada correctamente: ${label}, ${serviceName(entry.cfg, "es")}. El paciente ya ha recibido el resumen.`,
+      historyNote: review
+        ? `Cita guardada como PENDIENTE DE REVISIÓN: ${label}, ${serviceName(entry.cfg, "es")}. El centro revisará la derivación y llamará al paciente. No digas que está confirmada.`
+        : `Cita creada correctamente: ${label}, ${serviceName(entry.cfg, "es")}. El paciente ya ha recibido el resumen.`,
     },
   };
 }
