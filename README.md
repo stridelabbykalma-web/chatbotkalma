@@ -17,7 +17,7 @@ WhatsApp ──enlace──▶ /reservas (web/)  ──▶  Worker (worker/src) 
 | Integración real con Docfav (API pública v1) | Hecha y probada en solo lectura contra la cuenta de Centre Kalma: servicios, profesionales y huecos reales |
 | Reserva conversacional con confirmación explícita | Hecha |
 | Docfav simulado para los tests | Hecho |
-| Tests de los criterios de aceptación | 57 tests, todos pasan (`npm test`) |
+| Tests de los criterios de aceptación | 61 tests, todos pasan (`npm test`) |
 | Evaluación con Claude real | Escrita (`npm run eval`); falta ejecutarla con la clave de Anthropic |
 | Despliegue | Pendiente: dominio, claves y datos de la lista de abajo |
 
@@ -25,7 +25,7 @@ WhatsApp ──enlace──▶ /reservas (web/)  ──▶  Worker (worker/src) 
 
 | Función | Cómo |
 |---|---|
-| Reservar | La IA entiende servicio, profesional y franja. Llama a `get_availability`, y el código busca huecos reales en Docfav y muestra 5 como máximo en botones. El paciente elige uno, rellena un formulario (el código lo valida) y ve un resumen. Solo al pulsar **Confirmar** el código vuelve a comprobar el hueco, crea la ficha si no existe y crea la cita. |
+| Reservar | La IA entiende el servicio y la franja. Llama a `get_availability`, y el código busca huecos reales en Docfav y muestra 5 como máximo en botones (solo día y hora). El paciente elige uno, rellena un formulario (el código lo valida) y ve un resumen. Solo al pulsar **Confirmar** el código vuelve a comprobar el hueco, crea la ficha si no existe y crea la cita. |
 | Dar de alta al paciente | La ficha la crea el código después de Confirmar, nunca la IA. |
 | Anular o cambiar | El bot no ve, no anula y no cambia citas. Explica el enlace de Docfav y, si hace falta, da el contacto y avisa al centro. Para cambiar, primero reserva la cita nueva y luego recuerda anular la antigua. |
 | Responder dudas | Solo con `config/knowledge.md`. Los precios, el teléfono, la dirección y el horario los inserta el código mediante marcadores `{{...}}`. |
@@ -51,7 +51,8 @@ No tiene ninguna para buscar pacientes ni para crear, anular o leer citas. Por d
    - La especificación pedía temperatura 0–0,3, pero los modelos actuales no aceptan ese parámetro. La consistencia viene de las normas en código y de los marcadores.
    - Está activado el *fallback* del servidor de Anthropic: si el modelo rechaza una petición por sus filtros de seguridad, la repite con otro modelo en vez de dejar al paciente sin respuesta.
 7. **Antelación mínima para reservar: 2 h** (`booking.min_lead_hours`). El plazo para anular lo aplica Docfav, no el bot.
-8. **Plan B incluido.** Con `booking.mode = "portal"` y `booking.portal_url`, el bot abre la agenda online de Docfav dentro del chat en vez de reservar él.
+8. **Nunca se dice qué profesional atiende.** El código reparte cada hueco entre los profesionales de `services.json` que tienen ese hueco libre y se lo pasa a Docfav, pero el paciente solo ve día y hora: ni en los botones, ni en el resumen, ni en la confirmación. La IA tampoco conoce los nombres ni puede elegir profesional. Si aun así escribe el nombre de alguien del equipo, el mensaje se descarta. Si el paciente pide a alguien en concreto, se le indica que lo pida llamando al centro.
+9. **Plan B incluido.** Con `booking.mode = "portal"` y `booking.portal_url`, el bot abre la agenda online de Docfav dentro del chat en vez de reservar él.
 
 ## Lo que se ha comprobado en Docfav
 
@@ -90,7 +91,7 @@ El bot solo sabe lo que pongas aquí. Lo que falte lo deriva al equipo: nunca lo
 
 **`config/services.json`**
 - [ ] Confirmar que "Plantillas a medida" corresponde a "Exploración Biomecánica del Pie" en Docfav
-- [ ] Confirmar qué profesionales hacen cada servicio
+- [ ] Confirmar qué profesionales hacen cada servicio (uso interno: el paciente no lo ve)
 - [ ] Rellenar `bring` (qué traer) por servicio
 - [ ] Añadir otros servicios reservables si quieres (Visita, Ondas de choque…): basta con su `docfav_service_id`
 
@@ -182,7 +183,7 @@ npm run deploy
 npm test
 ```
 
-57 tests, uno o varios por cada criterio de aceptación (`tests/acceptance.test.ts`), más el cliente de Docfav y las validaciones. Usan Docfav simulado y una IA con guion, así que comprueban lo que garantiza el código.
+61 tests, uno o varios por cada criterio de aceptación (`tests/acceptance.test.ts`), más el cliente de Docfav y las validaciones. Usan Docfav simulado y una IA con guion, así que comprueban lo que garantiza el código.
 
 ```bash
 ANTHROPIC_API_KEY=sk-ant-... npm run eval
@@ -206,6 +207,7 @@ La evaluación usa Claude real con Docfav simulado. Comprueba lo que depende del
 | Castellano, catalán e inglés | `acceptance` 12 + `eval` |
 | Ninguna clave en la página ni en el repositorio | `acceptance` 13 |
 | Logs sin datos personales | `acceptance` 14 |
+| Nunca se dice qué profesional atiende | `acceptance` "Nunca se dice…" + `eval` |
 | Se ve bien en móvil | `acceptance` 15 + revisión en un navegador simulando un iPhone 13 |
 
 ## Estructura

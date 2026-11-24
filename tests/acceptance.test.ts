@@ -31,7 +31,7 @@ describe("1. Reserva completa de principio a fin", () => {
     expect(appt.behaviour).toBe("confirmed");
     expect(Date.parse(appt.to) - Date.parse(appt.from)).toBe(15 * 60_000);
     // now = Tuesday 11:00 Madrid + 2 h minimum lead time
-    expect(slot.label).toBe("Martes 24/11 a las 13:00 · Abraham");
+    expect(slot.label).toBe("Martes 24/11 a las 13:00");
   });
 });
 
@@ -239,7 +239,7 @@ describe("10. Intento de manipulación", () => {
   it("no existe ninguna vía para leer citas o datos de otros pacientes", () => {
     const params = toolDefinitions(false).flatMap((t) => Object.keys((t.input_schema as any).properties ?? {}));
     expect(params.sort()).toEqual(
-      ["date_from", "date_to", "options", "part_of_day", "professional_id", "reason", "service_id", "topic", "weekdays"].sort(),
+      ["date_from", "date_to", "options", "part_of_day", "reason", "service_id", "topic", "weekdays"].sort(),
     );
   });
 
@@ -323,8 +323,8 @@ describe("12. Castellano, catalán e inglés", () => {
     const en = harness();
     const sid = await en.start("en");
     const { slot, summary } = await bookUntilSummary(en, sid);
-    expect(slot.label).toBe("Tuesday 24/11 at 13:00 · Abraham");
-    expect(summary.lines.join(" ")).toMatch(/Chiropody · with/);
+    expect(slot.label).toBe("Tuesday 24/11 at 13:00");
+    expect(summary.lines.join(" ")).toMatch(/Chiropody · Centre Kalma/);
     expect(en.llm.requests[0].system[1].text).toContain("inglés");
   });
 });
@@ -374,6 +374,34 @@ describe("15. Se ve bien en móvil", () => {
     expect(html).toContain('name="viewport" content="width=device-width, initial-scale=1');
     expect(css).toMatch(/font-size: 16px/); // avoids iOS zoom on focus
     expect(css).not.toMatch(/width:\s*\d{4}px/);
+  });
+});
+
+describe("Nunca se dice qué profesional atiende", () => {
+  const NAMES = /abraham|matilde|jos[eé]|antonio/i;
+
+  it("ni en huecos, resumen, confirmación ni en lo que ve la IA", async () => {
+    const h = harness();
+    const sid = await h.start();
+    const { chat, sel, contact, token } = await bookUntilSummary(h, sid);
+    const done = await h.call("/action", { sessionId: sid, action: { type: "confirm", token } });
+    for (const r of [chat, sel, contact, done]) expect(JSON.stringify(r.body)).not.toMatch(NAMES);
+    expect(JSON.stringify(h.llm.requests)).not.toMatch(NAMES); // prompt, tools and tool results
+    expect(h.docfav.appointments[0].staffCalendarId).toBeTruthy(); // Docfav still gets the professional
+  });
+
+  it("si la IA nombra a alguien del equipo, el mensaje se descarta", async () => {
+    const h = harness();
+    const sid = await h.start();
+    h.llm.say("Te atenderá Jose Antonio, que es muy bueno.");
+    const r = await h.call("/chat", { sessionId: sid, text: "¿Quién me atenderá?" });
+    expect(r.body.messages[0].text).not.toMatch(NAMES);
+    expect(r.body.messages[0].text).toMatch(/Eso te lo confirma el equipo/);
+  });
+
+  it("la IA no puede elegir profesional", () => {
+    const params = toolDefinitions(false).flatMap((t) => Object.keys((t.input_schema as any).properties ?? {}));
+    expect(params).not.toContain("professional_id");
   });
 });
 

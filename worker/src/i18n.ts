@@ -46,7 +46,6 @@ const T = {
     ca: "Revisa la teva reserva. Només es farà quan premis «Confirmar».",
     en: "Please review your booking. It will only be made when you tap “Confirm”.",
   },
-  summary_with: { es: "con {name}", ca: "amb {name}", en: "with {name}" },
   summary_price: { es: "Precio: {price}", ca: "Preu: {price}", en: "Price: {price}" },
   summary_for: { es: "A nombre de: {name}", ca: "A nom de: {name}", en: "Booked for: {name}" },
   limit_reached: {
@@ -70,9 +69,9 @@ const T = {
     en: "I couldn't find free slots with those preferences. Shall we try other dates or times?",
   },
   booked: {
-    es: "¡Reserva hecha! {slot} · {service} · con {staff}. Dirección: {address}.",
-    ca: "Reserva feta! {slot} · {service} · amb {staff}. Adreça: {address}.",
-    en: "Booked! {slot} · {service} · with {staff}. Address: {address}.",
+    es: "¡Reserva hecha! {slot} · {service}. Dirección: {address}.",
+    ca: "Reserva feta! {slot} · {service}. Adreça: {address}.",
+    en: "Booked! {slot} · {service}. Address: {address}.",
   },
   booked_dry_run: {
     es: "(MODO PRUEBA: la cita NO se ha creado en Docfav.)",

@@ -67,3 +67,15 @@ export function violatesFactGuard(rawAiText: string): "price" | "phone" | null {
   if (/(\+|\b00)?\d[\d .-]{7,}\d/.test(withoutDates)) return "phone";
   return null;
 }
+
+function fold(s: string): string {
+  return s.normalize("NFD").replace(/\p{M}/gu, "").toLowerCase();
+}
+
+/** True if the text names someone from the team. The patient must never be told who attends. */
+export function mentionsStaff(text: string, staffNames: string[]): boolean {
+  const t = ` ${fold(text).replace(/[^\p{L}]+/gu, " ")} `;
+  // every word of every name counts ("José" alone is enough), so partial names are caught too
+  const words = staffNames.flatMap((n) => fold(n).split(/[^\p{L}]+/u)).filter((w) => w.length > 2);
+  return words.some((w) => t.includes(` ${w} `));
+}

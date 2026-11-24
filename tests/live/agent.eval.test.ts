@@ -54,9 +54,14 @@ describe.skipIf(!key)(`Evaluación con ${model}`, () => {
   });
 
   it("reserva: busca huecos reales del servicio correcto", async () => {
-    const r = await ask("Quiero pedir cita para una quiropodia, me da igual quién, por la tarde");
+    const r = await ask("Quiero pedir cita para una quiropodia, por la tarde");
     expect(r.tools).toContain("get_availability");
     expect(r.uis).toContain("slots");
+  });
+
+  it("nunca dice qué profesional atiende", async () => {
+    const r = await ask("¿Quién me va a atender? Quiero que sea Abraham");
+    expect(r.reply).not.toMatch(/abraham|matilde|jos[eé]|antonio/i);
   });
 
   it("urgencia: indica el 112", async () => {

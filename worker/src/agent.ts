@@ -1,12 +1,12 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { contactMessage, factsFrom, findSlots, getCatalog, labelFor, slotsUi, staffName, type Deps } from "./booking";
+import { contactMessage, factsFrom, findSlots, getCatalog, labelFor, slotsUi, type Deps } from "./booking";
 import { serviceName } from "./config";
 import { t } from "./i18n";
 import type { LLM } from "./llm";
 import { scrubText } from "./log";
 import type { NotifyReason } from "./notify";
 import { buildSystem } from "./prompt";
-import { renderPlaceholders, violatesFactGuard } from "./render";
+import { mentionsStaff, renderPlaceholders, violatesFactGuard } from "./render";
 import { todayContext } from "./time";
 import type { BotMessage, SessionState, UiElement } from "./types";
 
@@ -23,7 +23,7 @@ export function toolDefinitions(portalMode: boolean): Anthropic.Beta.BetaTool[] 
   const tools: Anthropic.Beta.BetaTool[] = [
     {
       name: "list_services",
-      description: "Lista los servicios del centro con su id, si se pueden reservar por el chat ahora mismo y los profesionales que los hacen. Úsala si necesitas confirmar qué se puede reservar.",
+      description: "Lista los servicios del centro con su id, y si se pueden reservar por el chat ahora mismo. Úsala si necesitas confirmar qué se puede reservar.",
       input_schema: { type: "object", properties: {}, additionalProperties: false },
     },
     {
@@ -77,7 +77,6 @@ export function toolDefinitions(portalMode: boolean): Anthropic.Beta.BetaTool[] 
         type: "object",
         properties: {
           service_id: { type: "string", description: "id del servicio (de la lista de servicios)" },
-          professional_id: { type: "string", description: "id del profesional; omitir si le da igual" },
           date_from: { type: "string", description: "YYYY-MM-DD" },
           date_to: { type: "string", description: "YYYY-MM-DD" },
           part_of_day: { type: "string", enum: ["morning", "afternoon", "any"] },
@@ -113,7 +112,6 @@ async function runTool(deps: Deps, session: SessionState, name: string, input: R
             bookable_in_chat: e.bookable,
             price: `{{precio:${e.cfg.id}}}`,
             duration: `{{duracion:${e.cfg.id}}}`,
-            professionals: e.staff.map((s) => ({ id: s.key, name: s.name })),
           })),
         },
       };
@@ -148,7 +146,6 @@ async function runTool(deps: Deps, session: SessionState, name: string, input: R
       const partOfDay = input.part_of_day === "morning" || input.part_of_day === "afternoon" ? input.part_of_day : undefined;
       const r = await findSlots(deps, session, {
         serviceId: input.service_id,
-        staffKey: typeof input.professional_id === "string" ? input.professional_id : undefined,
         dateFrom: typeof input.date_from === "string" ? input.date_from : undefined,
         dateTo: typeof input.date_to === "string" ? input.date_to : undefined,
         partOfDay,
@@ -160,14 +157,13 @@ async function runTool(deps: Deps, session: SessionState, name: string, input: R
         }
         return { result: { error: r.error } };
       }
-      const showStaff = !r.query.staffKey;
       return {
         result: {
           searched: { from: r.query.dateFrom, to: r.query.dateTo, part_of_day: r.query.partOfDay ?? "any" },
-          slots_shown_as_buttons: r.slots.map((s) => `${labelFor(deps, s, lang)} · ${staffName(deps, s.staffKey)}`),
+          slots_shown_as_buttons: r.slots.map((s) => labelFor(deps, s, lang)),
           ...(r.slots.length ? {} : { note: "No hay huecos con esas preferencias. Propón otras fechas o franja." }),
         },
-        ui: r.slots.length ? slotsUi(deps, r.slots, lang, showStaff) : undefined,
+        ui: r.slots.length ? slotsUi(deps, r.slots, lang) : undefined,
       };
     }
     default:
@@ -235,7 +231,7 @@ export async function runAgent(deps: Deps & { llm: LLM }, session: SessionState,
       .map((b) => b.text)
       .join("\n")
       .trim();
-    const guard = violatesFactGuard(raw);
+    const guard = violatesFactGuard(raw) ?? (mentionsStaff(raw, cfg.settings.staff.map((s) => s.name)) ? "staff_name" : null);
     if (guard) {
       deps.logger.event("fact_guard", { sid: session.id, reason: guard });
       return [fallbackTeam(deps, session)];

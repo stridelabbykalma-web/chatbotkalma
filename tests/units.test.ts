@@ -2,7 +2,7 @@ import { describe, expect, it } from "vitest";
 import { cleanKnowledge, loadConfig } from "../worker/src/config";
 import { scrubText } from "../worker/src/log";
 import { buildEmail } from "../worker/src/notify";
-import { renderPlaceholders, violatesFactGuard } from "../worker/src/render";
+import { mentionsStaff, renderPlaceholders, violatesFactGuard } from "../worker/src/render";
 import { normalizeEmail, normalizeName, normalizePhone } from "../worker/src/validate";
 
 describe("validación", () => {
@@ -39,6 +39,14 @@ describe("marcadores y guardas", () => {
     expect(violatesFactGuard("Llama al 972 12 34 56")).toBe("phone");
     expect(violatesFactGuard("Tengo el jueves 27/11 a las 17:00 o el 2026-11-28 a las 9:30")).toBeNull();
     expect(violatesFactGuard("Cuesta {{precio:quiropodia}}")).toBeNull();
+  });
+  it("detecta nombres del equipo, con o sin acentos y por partes", () => {
+    const staff = ["Abraham", "Matilde", "José Antonio"];
+    expect(mentionsStaff("Te atiende ABRAHAM", staff)).toBe(true);
+    expect(mentionsStaff("con jose", staff)).toBe(true);
+    expect(mentionsStaff("Matilde.", staff)).toBe(true);
+    expect(mentionsStaff("El profesional te atenderá el jueves", staff)).toBe(false);
+    expect(mentionsStaff("Matildes", staff)).toBe(false);
   });
 });
 

@@ -209,16 +209,18 @@ export function labelFor(deps: Deps, slot: OfferedSlot, lang: Lang): string {
   return slotLabel(slot.from, deps.cfg.settings.booking.timezone, lang);
 }
 
+/** Internal only (emails to the centre). Never shown to the patient or the AI. */
 export function staffName(deps: Deps, key: string): string {
   return staffByKey(deps.cfg, key)?.name ?? key;
 }
 
-export function slotsUi(deps: Deps, slots: OfferedSlot[], lang: Lang, showStaff: boolean) {
+/** Patient-facing slot buttons: date and time only. The professional is never shown. */
+export function slotsUi(deps: Deps, slots: OfferedSlot[], lang: Lang) {
   return {
     type: "slots" as const,
     slots: slots.map((s) => ({
       id: s.id,
-      label: labelFor(deps, s, lang) + (showStaff ? ` · ${staffName(deps, s.staffKey)}` : ""),
+      label: labelFor(deps, s, lang),
     })),
   };
 }
@@ -232,7 +234,7 @@ export function selectSlot(deps: Deps, session: SessionState, slotId: unknown): 
   if (!slot) return [{ text: t(session.lang, "slot_expired") }];
   session.selectedSlotId = slot.id;
   session.pending = undefined;
-  const label = `${labelFor(deps, slot, session.lang)} · ${staffName(deps, slot.staffKey)}`;
+  const label = labelFor(deps, slot, session.lang);
   return [{ text: t(session.lang, "ask_contact", { slot: label }), ui: { type: "contact_form", slotLabel: label } }];
 }
 
@@ -301,7 +303,7 @@ export async function submitContact(deps: Deps, session: SessionState, input: un
   const { entries } = await getCatalog(deps);
   const entry = entries.find((e) => e.cfg.id === slot.serviceId);
   const lines = [
-    `${labelFor(deps, slot, lang)} · ${entry ? serviceName(entry.cfg, lang) : slot.serviceId} · ${t(lang, "summary_with", { name: staffName(deps, slot.staffKey) })} · ${deps.cfg.settings.center.name}`,
+    `${labelFor(deps, slot, lang)} · ${entry ? serviceName(entry.cfg, lang) : slot.serviceId} · ${deps.cfg.settings.center.name}`,
     t(lang, "summary_price", { price: formatPrice(entry?.priceEur ?? null, lang) }),
     t(lang, "summary_for", { name: `${c.firstName} ${c.lastName}` }),
   ];
@@ -316,7 +318,7 @@ async function reoffer(deps: Deps, session: SessionState, introKey: "slot_taken"
   const r = await findSlots(deps, session, session.lastQuery, failed);
   if (!r.ok) return [contactMessage(deps, t(lang, "agenda_down"))];
   if (!r.slots.length) return [{ text: t(lang, introKey) }, { text: t(lang, "no_slots") }];
-  return [{ text: t(lang, introKey), ui: slotsUi(deps, r.slots, lang, !session.lastQuery.staffKey) }];
+  return [{ text: t(lang, introKey), ui: slotsUi(deps, r.slots, lang) }];
 }
 
 export interface ConfirmOutcome {
@@ -436,7 +438,7 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
   deps.logger.event("appointment_created", { sid: session.id, service: slot.serviceId, mode: deps.dryRun ? "dry_run" : "live" });
 
   const label = labelFor(deps, slot, lang);
-  const parts = [t(lang, "booked", { slot: label, service: serviceName(entry.cfg, lang), staff: staffName(deps, slot.staffKey), address: deps.cfg.settings.center.address })];
+  const parts = [t(lang, "booked", { slot: label, service: serviceName(entry.cfg, lang), address: deps.cfg.settings.center.address })];
   const bring = entry.cfg.bring[lang] || entry.cfg.bring.es;
   if (bring) parts.push(t(lang, "bring", { text: bring }));
   parts.push(t(lang, "booked_footer"));
@@ -446,7 +448,7 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
     outcome: {
       messages: [{ text: parts.join("\n") }],
       booked: true,
-      historyNote: `Cita creada correctamente: ${label}, ${serviceName(entry.cfg, "es")}, con ${staffName(deps, slot.staffKey)}. El paciente ya ha recibido el resumen.`,
+      historyNote: `Cita creada correctamente: ${label}, ${serviceName(entry.cfg, "es")}. El paciente ya ha recibido el resumen.`,
     },
   };
 }
