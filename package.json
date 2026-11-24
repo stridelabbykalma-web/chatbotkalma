@@ -8,7 +8,8 @@
     "test": "vitest run",
     "typecheck": "tsc -p tsconfig.json",
     "check:docfav": "vitest run --config vitest.live.config.ts tests/live/docfav",
-    "eval": "vitest run --config vitest.live.config.ts tests/live/agent"
+    "eval": "vitest run --config vitest.live.config.ts tests/live/agent",
+    "build:demo": "node scripts/build-demo.mjs"
   },
   "repository": {
     "type": "git",

@@ -16,7 +16,7 @@
   color-scheme: light;
 }
 @media (prefers-color-scheme: dark) {
-  :root {
+  :root:not([data-theme="light"]) {
     --bg: #111717;
     --surface: #1a2323;
     --text: #e8eeec;
@@ -31,6 +31,21 @@
     --error: #ff8a80;
     color-scheme: dark;
   }
+}
+:root[data-theme="dark"] {
+  --bg: #111717;
+  --surface: #1a2323;
+  --text: #e8eeec;
+  --muted: #9fb0ae;
+  --brand: #5fb3a9;
+  --brand-ink: #062322;
+  --accent: #20302e;
+  --bot: #1d2828;
+  --me: #2e7d74;
+  --me-ink: #ffffff;
+  --border: #2d3a39;
+  --error: #ff8a80;
+  color-scheme: dark;
 }
 
 * { box-sizing: border-box; }
@@ -50,7 +65,7 @@ button { font: inherit; cursor: pointer; }
 button:disabled { cursor: not-allowed; opacity: .55; }
 
 .topbar {
-  position: sticky; top: 0; z-index: 2;
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 2;
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 10px 16px; padding-top: max(10px, env(safe-area-inset-top));
   background: var(--surface); border-bottom: 1px solid var(--border);
