@@ -7,7 +7,8 @@
 
   const STR = {
     es: {
-      title: "Reservas", privacy_title: "Antes de empezar",
+      title: "Reservas",
+      mic: "Grabar audio", mic_send: "Enviar audio", mic_cancel: "Cancelar audio", recording: "Grabando…", mic_denied: "No se ha podido usar el micrófono. Puedes escribir tu mensaje.", listen: "Escuchar", voice_privacy: "Si mandas un audio, solo se usa para pasarlo a texto y no se guarda.", privacy_title: "Antes de empezar",
       privacy_text: "Este chat te orienta sobre el servicio que te conviene y te ayuda a reservar cita. Puedes contarnos qué te molesta; no hace falta que nos digas enfermedades, diagnósticos ni medicación. Para reservar te pediremos nombre, apellidos, móvil y email.",
       controller: "Responsable", purpose: "Finalidad", purpose_text: "Orientarte sobre el servicio adecuado, gestionar tu cita y responder tus dudas.",
       legal_basis: "Base legal", legal_basis_text: "Tu consentimiento explícito, también para lo que nos cuentes sobre tu molestia.",
@@ -22,7 +23,8 @@
       ended: "Conversación borrada. ¡Gracias!",
     },
     ca: {
-      title: "Reserves", privacy_title: "Abans de començar",
+      title: "Reserves",
+      mic: "Gravar àudio", mic_send: "Enviar àudio", mic_cancel: "Cancel·lar àudio", recording: "Gravant…", mic_denied: "No s'ha pogut fer servir el micròfon. Pots escriure el missatge.", listen: "Escoltar", voice_privacy: "Si envies un àudio, només s'utilitza per passar-lo a text i no es guarda.", privacy_title: "Abans de començar",
       privacy_text: "Aquest xat t'orienta sobre el servei que et convé i t'ajuda a reservar cita. Ens pots explicar què et molesta; no cal que ens diguis malalties, diagnòstics ni medicació. Per reservar et demanarem nom, cognoms, mòbil i correu.",
       controller: "Responsable", purpose: "Finalitat", purpose_text: "Orientar-te sobre el servei adequat, gestionar la teva cita i respondre els teus dubtes.",
       legal_basis: "Base legal", legal_basis_text: "El teu consentiment explícit, també per al que ens expliquis de la teva molèstia.",
@@ -37,7 +39,8 @@
       ended: "Conversa esborrada. Gràcies!",
     },
     en: {
-      title: "Bookings", privacy_title: "Before we start",
+      title: "Bookings",
+      mic: "Record audio", mic_send: "Send audio", mic_cancel: "Cancel audio", recording: "Recording…", mic_denied: "The microphone couldn't be used. You can type your message.", listen: "Listen", voice_privacy: "If you send audio, it is only used to turn it into text and is not stored.", privacy_title: "Before we start",
       privacy_text: "This chat helps you find the right service and book an appointment. You can tell us what bothers you; there's no need to share illnesses, diagnoses or medication. To book we'll ask for your first name, surname, mobile and email.",
       controller: "Controller", purpose: "Purpose", purpose_text: "Guiding you to the right service, managing your appointment and answering your questions.",
       legal_basis: "Legal basis", legal_basis_text: "Your explicit consent, including for what you tell us about your complaint.",
@@ -82,11 +85,13 @@
     document.querySelectorAll(".lang button").forEach((b) => b.setAttribute("aria-pressed", String(b.dataset.lang === state.lang)));
     $("title").textContent = s("title");
     $("privacy-title").textContent = s("privacy_title");
-    $("privacy-text").textContent = s("privacy_text");
+    $("privacy-text").textContent = s("privacy_text") + (voiceAvailable() ? " " + s("voice_privacy") : "");
     document.querySelectorAll("[data-i18n]").forEach((n) => { n.textContent = s(n.dataset.i18n); });
     $("start").textContent = s("start");
     $("input").placeholder = s("placeholder");
     $("end").textContent = s("end");
+    $("mic").setAttribute("aria-label", recorder.active ? s("mic_send") : s("mic"));
+    $("mic-cancel").setAttribute("aria-label", s("mic_cancel"));
     $("privacy-link").textContent = s("policy");
   }
 
@@ -112,6 +117,7 @@
     }
     const p = (state.config && state.config.privacy) || {};
     $("privacy-controller").textContent = [p.controller, p.nif, p.contact_email].filter(Boolean).join(" · ") || "Centre Kalma";
+    applyLang();
     if (p.policy_url) {
       $("privacy-link").href = p.policy_url;
       $("privacy-link").hidden = false;
@@ -157,6 +163,7 @@
       $("chat").hidden = false;
       $("composer").hidden = false;
       $("end").hidden = false;
+      $("mic").hidden = !voiceAvailable();
       render(data.messages);
       $("input").focus();
     } catch (e) {
@@ -238,7 +245,7 @@
 
   function render(messages) {
     for (const m of messages || []) {
-      if (m.text) log.append(el("li", { class: "msg bot" }, m.text));
+      if (m.text) log.append(botBubble(m.text));
       if (m.ui) log.append(renderUi(m.ui));
     }
     scrollDown();
@@ -329,7 +336,166 @@
     return li;
   }
 
+
+  // ---------- voice: record a note (sent to the backend for transcription) ----------
+  const LOCALES = { es: "es-ES", ca: "ca-ES", en: "en-GB" };
+  const recorder = { active: false, media: null, chunks: [], stream: null, timer: null, started: 0, cancelled: false };
+
+  function voiceAvailable() {
+    if (window.kalmaVoice) return true; // demo adapter
+    return !!(state.config && state.config.voice && navigator.mediaDevices && navigator.mediaDevices.getUserMedia && window.MediaRecorder);
+  }
+
+  function pickMime() {
+    const types = ["audio/webm;codecs=opus", "audio/mp4", "audio/ogg;codecs=opus", "audio/webm"];
+    return types.find((t) => window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t)) || "";
+  }
+
+  function setRecordingUi(on) {
+    recorder.active = on;
+    $("mic").classList.toggle("recording", on);
+    $("mic").setAttribute("aria-label", on ? s("mic_send") : s("mic"));
+    $("mic-cancel").hidden = !on;
+    $("send").hidden = on;
+    $("input").classList.toggle("recording", on);
+    $("input").readOnly = on;
+    if (on) {
+      recorder.started = Date.now();
+      const tick = () => {
+        const sec = Math.floor((Date.now() - recorder.started) / 1000);
+        $("input").value = `● ${Math.floor(sec / 60)}:${String(sec % 60).padStart(2, "0")}  ${s("recording")}`;
+        if (sec >= 60) stopRecording(false);
+      };
+      tick();
+      recorder.timer = setInterval(tick, 500);
+    } else {
+      clearInterval(recorder.timer);
+      $("input").value = "";
+    }
+  }
+
+  async function startRecording() {
+    if (state.busy || !state.sessionId) return;
+    if (window.kalmaVoice) {
+      try {
+        await window.kalmaVoice.start(state.lang);
+        setRecordingUi(true);
+      } catch {
+        render([{ text: s("mic_denied") }]);
+      }
+      return;
+    }
+    try {
+      recorder.stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+    } catch {
+      render([{ text: s("mic_denied") }]);
+      $("mic").hidden = true;
+      return;
+    }
+    const mime = pickMime();
+    recorder.media = new MediaRecorder(recorder.stream, mime ? { mimeType: mime } : undefined);
+    recorder.chunks = [];
+    recorder.cancelled = false;
+    recorder.media.ondataavailable = (e) => { if (e.data && e.data.size) recorder.chunks.push(e.data); };
+    recorder.media.onstop = () => {
+      recorder.stream.getTracks().forEach((t) => t.stop());
+      if (recorder.cancelled) return;
+      const blob = new Blob(recorder.chunks, { type: (recorder.media.mimeType || mime || "audio/webm").split(";")[0] });
+      sendAudio(blob);
+    };
+    recorder.media.start();
+    setRecordingUi(true);
+  }
+
+  async function stopRecording(cancel) {
+    if (!recorder.active) return;
+    setRecordingUi(false);
+    if (window.kalmaVoice) {
+      const text = cancel ? "" : (await window.kalmaVoice.stop().catch(() => "")).trim();
+      if (cancel) window.kalmaVoice.cancel && window.kalmaVoice.cancel();
+      if (text) send("chat", { text }, "🎤 " + text);
+      return;
+    }
+    recorder.cancelled = cancel;
+    if (recorder.media && recorder.media.state !== "inactive") recorder.media.stop();
+  }
+
+  async function sendAudio(blob) {
+    if (state.busy || !state.sessionId) return;
+    const mine = el("li", { class: "msg me" }, "🎤 …");
+    log.append(mine);
+    setBusy(true);
+    typing(true);
+    try {
+      const r = await fetch(`${API}/audio`, { method: "POST", headers: { "Content-Type": blob.type || "audio/webm", "X-Session-Id": state.sessionId }, body: blob });
+      const data = await r.json().catch(() => null);
+      if (!r.ok) throw Object.assign(new Error((data && data.error) || "http"), { status: r.status });
+      typing(false);
+      if (data.transcript) mine.textContent = "🎤 " + data.transcript;
+      else mine.remove();
+      render(data.messages);
+    } catch (e) {
+      typing(false);
+      mine.remove();
+      render([{ text: e.status === 410 ? s("expired") : s("error") }]);
+      if (e.status === 410) endUi();
+    } finally {
+      setBusy(false);
+      document.querySelectorAll(".ui:not(.done) button").forEach((x) => (x.disabled = false));
+    }
+  }
+
+  $("mic").addEventListener("click", () => (recorder.active ? stopRecording(false) : startRecording()));
+  $("mic-cancel").addEventListener("click", () => stopRecording(true));
+
+  // ---------- voice: read bot messages aloud (the phone's own voice, nothing is sent) ----------
+  const canSpeak = !!window.kalmaSpeak || ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window);
+  let speaking = null;
+
+  function speak(text, btn) {
+    if (speaking === btn) {
+      stopSpeaking();
+      return;
+    }
+    stopSpeaking();
+    speaking = btn;
+    btn.classList.add("on");
+    const done = () => { if (speaking === btn) { speaking = null; btn.classList.remove("on"); } };
+    if (window.kalmaSpeak) {
+      window.kalmaSpeak(text, state.lang).then(done, done);
+      return;
+    }
+    const u = new SpeechSynthesisUtterance(text);
+    u.lang = LOCALES[state.lang];
+    const voice = speechSynthesis.getVoices().find((v) => v.lang && v.lang.toLowerCase().startsWith(state.lang));
+    if (voice) u.voice = voice;
+    u.rate = 0.95;
+    u.onend = done;
+    u.onerror = done;
+    speechSynthesis.speak(u);
+  }
+
+  function stopSpeaking() {
+    if (window.kalmaSpeak && window.kalmaSpeak.stop) window.kalmaSpeak.stop();
+    if ("speechSynthesis" in window) speechSynthesis.cancel();
+    if (speaking) speaking.classList.remove("on");
+    speaking = null;
+  }
+
+  function botBubble(text) {
+    const li = el("li", { class: "msg bot" }, el("span", {}, text));
+    if (canSpeak) {
+      const btn = el("button", { type: "button", class: "speak keep", "aria-label": s("listen"), title: s("listen") });
+      btn.innerHTML = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M4 9v6h4l5 4V5L8 9H4Zm12.5 3a4.5 4.5 0 0 0-2.5-4v8a4.5 4.5 0 0 0 2.5-4ZM14 3.2v2.1a7 7 0 0 1 0 13.4v2.1a9 9 0 0 0 0-17.6Z" fill="currentColor"/></svg>';
+      btn.addEventListener("click", () => speak(text, btn));
+      li.append(btn);
+    }
+    return li;
+  }
+
   function endUi() {
+    stopRecording(true);
+    stopSpeaking();
     $("composer").hidden = true;
     $("end").hidden = true;
     state.sessionId = null;

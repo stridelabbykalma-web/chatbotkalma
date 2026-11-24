@@ -265,5 +265,42 @@ async function runPersonaTests() {
   btn.disabled = false;
 }
 
+// ---------- voice in the demo: Claude's dictation and voice instead of Whisper / the phone ----------
+// The artifact viewer blocks the microphone for pages, so the demo uses the viewer's own
+// capabilities. The real chat records audio and sends it to Whisper on Cloudflare.
+async function setupVoice() {
+  if (!window.claude) return;
+  const [dictation, tts] = await Promise.all([
+    window.claude.use("dictation").catch(() => null),
+    window.claude.use("tts").catch(() => null),
+  ]);
+  if (dictation) {
+    let finals: string[] = [];
+    dictation.onFinal(({ text }: { text: string }) => finals.push(text));
+    (window as any).kalmaVoice = {
+      start(lang: string) {
+        finals = [];
+        return dictation.start({ language: lang }); // called straight from the click
+      },
+      async stop() {
+        await dictation.stop();
+        return finals.join(" ");
+      },
+      cancel() {
+        finals = [];
+        dictation.stop().catch(() => undefined);
+      },
+    };
+    const mic = document.getElementById("mic");
+    if (mic && !document.getElementById("composer")!.hidden) mic.hidden = false;
+  }
+  if (tts) {
+    const speak = (text: string, lang: string) => tts.speak(text, { language: lang });
+    (speak as any).stop = () => tts.stop().catch(() => undefined);
+    (window as any).kalmaSpeak = speak;
+  }
+}
+void setupVoice();
+
 if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", () => { setupPanel(); connectClaude(); });
 else { setupPanel(); connectClaude(); }

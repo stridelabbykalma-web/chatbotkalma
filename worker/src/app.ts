@@ -10,7 +10,12 @@ export interface AppDeps extends Deps {
   verifyTurnstile: (token: unknown, ip: string) => Promise<boolean>;
   turnstileSiteKey?: string;
   allowedOrigins: string[];
+  /** Speech to text for voice notes (Workers AI Whisper). Absent = voice notes disabled. */
+  transcribe?: (audio: ArrayBuffer, contentType: string) => Promise<string>;
 }
+
+const MAX_AUDIO_BYTES = 2_000_000; // about a minute of compressed speech
+const AUDIO_TYPES = /^audio\/(webm|ogg|mp4|mpeg|mp3|wav|x-wav|aac|x-m4a|m4a)(;.*)?$/i;
 
 const API = "/reservas/api";
 const SESSION_TTL_MS = 24 * 3600_000;
@@ -82,6 +87,43 @@ export function createApp(deps: AppDeps) {
     return null;
   }
 
+  /**
+   * Voice note: transcribed and then handled exactly like a typed message. The audio is never
+   * stored or logged; only the transcript joins the conversation.
+   */
+  async function handleAudio(req: Request): Promise<Response> {
+    if (!deps.transcribe) return errorResponse("audio_disabled", 404);
+    const sessionId = req.headers.get("X-Session-Id") ?? "";
+    const type = req.headers.get("Content-Type") ?? "";
+    if (!sessionId) return errorResponse("no_session", 400);
+    if (!AUDIO_TYPES.test(type)) return errorResponse("unsupported_audio", 415);
+    if (Number(req.headers.get("Content-Length") ?? "0") > MAX_AUDIO_BYTES) return errorResponse("audio_too_long", 413);
+    const audio = await req.arrayBuffer();
+    if (audio.byteLength === 0) return errorResponse("empty_audio", 400);
+    if (audio.byteLength > MAX_AUDIO_BYTES) return errorResponse("audio_too_long", 413);
+    const session = await deps.store.get(sessionId);
+    if (!session) return errorResponse("session_expired", 410);
+    const limited = rateLimit(session, true);
+    if (limited) {
+      await deps.store.put(session);
+      return json({ messages: [limited] });
+    }
+    let transcript = "";
+    try {
+      transcript = sanitizeUserText(await deps.transcribe(audio, type), limits.max_message_chars);
+    } catch (e) {
+      deps.logger.event("transcribe_error", { sid: session.id, code: e instanceof Error ? e.name : "UNKNOWN" });
+    }
+    if (!transcript) {
+      await deps.store.put(session);
+      return json({ transcript: "", messages: [{ text: t(session.lang, "audio_not_understood") }] });
+    }
+    deps.logger.event("voice_note", { sid: session.id, count: audio.byteLength });
+    const messages = await runAgent(deps, session, transcript);
+    await deps.store.put(session);
+    return json({ transcript, messages });
+  }
+
   async function handle(req: Request): Promise<Response> {
     const url = new URL(req.url);
     const path = url.pathname;
@@ -95,6 +137,7 @@ export function createApp(deps: AppDeps) {
         center: { name: c.center.name, phone: c.center.phone || null, whatsapp: c.center.whatsapp || null, email: c.center.email || null },
         privacy: c.privacy,
         mode: c.booking.mode,
+        voice: !!deps.transcribe,
       });
     }
 
@@ -102,6 +145,7 @@ export function createApp(deps: AppDeps) {
     if (!originAllowed(req, deps.allowedOrigins)) return errorResponse("forbidden_origin", 403);
     const ip = req.headers.get("CF-Connecting-IP") ?? "local";
     if (ipLimited(ipHits, ip, limits.requests_per_minute_per_ip, deps.now())) return errorResponse("rate_limited", 429);
+    if (route === "/audio") return handleAudio(req);
     const body = await readBody(req);
     if (!body) return errorResponse("bad_request", 400);
 

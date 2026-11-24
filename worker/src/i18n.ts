@@ -124,6 +124,11 @@ const T = {
     ca: "Pots reservar directament a la nostra agenda en línia:",
     en: "You can book directly in our online schedule:",
   },
+  audio_not_understood: {
+    es: "No he podido entender el audio. ¿Puedes repetirlo o escribirlo?",
+    ca: "No he pogut entendre l'àudio. El pots repetir o escriure?",
+    en: "I couldn't understand the audio. Could you repeat it or type it?",
+  },
   price_free: { es: "a consultar", ca: "a consultar", en: "ask the team" },
 } as const satisfies Record<string, Record<Lang, string>>;
 

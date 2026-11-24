@@ -41,7 +41,7 @@ const demoCss = `
 `;
 
 const demoHtml = `
-<div class="demo-banner" role="note"><strong>Demo.</strong> Es el código real del bot con la agenda simulada (servicios y precios reales de Docfav, huecos inventados). No se reserva nada de verdad.</div>
+<div class="demo-banner" role="note"><strong>Demo.</strong> Es el código real del bot con la agenda simulada (servicios y precios reales de Docfav, huecos inventados). No se reserva nada de verdad. El micrófono usa aquí el dictado de Claude; en el chat real, Whisper.</div>
 `;
 const panelHtml = `
 <section class="demo" aria-label="Panel de pruebas">

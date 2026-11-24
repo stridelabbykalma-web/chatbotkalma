@@ -9,6 +9,7 @@ import { execFileSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { describe, expect, it } from "vitest";
 import { toolDefinitions } from "../worker/src/agent";
+import { createApp } from "../worker/src/app";
 import { t } from "../worker/src/i18n";
 import { LANGS } from "../worker/src/types";
 import { bookUntilSummary, harness, PATIENT, toolUse } from "./helpers";
@@ -424,6 +425,67 @@ describe("Nunca se dice qué profesional atiende", () => {
   it("la IA no puede elegir profesional", () => {
     const params = toolDefinitions(false).flatMap((t) => Object.keys((t.input_schema as any).properties ?? {}));
     expect(params).not.toContain("professional_id");
+  });
+});
+
+describe("Notas de voz", () => {
+  async function voice(h: ReturnType<typeof harness>, sid: string, bytes: number, type = "audio/webm") {
+    const res = await h.app.handle(
+      new Request("https://kalma.test/reservas/api/audio", {
+        method: "POST",
+        headers: { "Content-Type": type, "X-Session-Id": sid, Origin: "https://kalma.test" },
+        body: new Uint8Array(bytes),
+      }),
+    );
+    return { status: res.status, body: (await res.json()) as any };
+  }
+  function withVoice(text: string) {
+    const h = harness();
+    const heard: number[] = [];
+    h.deps.transcribe = async (audio) => {
+      heard.push(audio.byteLength);
+      return text;
+    };
+    h.app = createApp(h.deps);
+    return { h, heard };
+  }
+
+  it("el audio se transcribe y se trata igual que un mensaje escrito", async () => {
+    const { h, heard } = withVoice("tengo las uñas muy gordas y no me las puedo cortar");
+    const sid = await h.start();
+    h.llm.say("Para eso lo indicado es una quiropodia. ¿Mañana o tarde?");
+    const r = await voice(h, sid, 30_000);
+    expect(r.status).toBe(200);
+    expect(r.body.transcript).toBe("tengo las uñas muy gordas y no me las puedo cortar");
+    expect(r.body.messages[0].text).toMatch(/quiropodia/);
+    expect(heard).toEqual([30_000]);
+    expect(h.llm.requests[0].messages.at(-1)!.content).toBe("tengo las uñas muy gordas y no me las puedo cortar");
+    // the audio is not kept and the transcript is not logged
+    expect(JSON.stringify(await h.store.get(sid))).not.toMatch(/audio/i);
+    expect(h.logger.lines.join("\n")).not.toMatch(/uñas/);
+  });
+
+  it("si no se entiende, lo dice y no llama a la IA", async () => {
+    const { h } = withVoice("   ");
+    const sid = await h.start();
+    const r = await voice(h, sid, 5_000);
+    expect(r.body.messages[0].text).toMatch(/No he podido entender el audio/);
+    expect(h.llm.requests).toHaveLength(0);
+  });
+
+  it("rechaza formatos raros, audios demasiado largos y cuenta para los límites", async () => {
+    const { h } = withVoice("hola");
+    const sid = await h.start();
+    expect((await voice(h, sid, 100, "application/pdf")).status).toBe(415);
+    expect((await voice(h, sid, 2_500_000)).status).toBe(413);
+    for (let i = 0; i < 10; i++) await voice(h, sid, 100);
+    expect((await voice(h, sid, 100)).body.messages[0].text).toMatch(/Vas muy rápido/);
+  });
+
+  it("sin Whisper configurado, las notas de voz están desactivadas", async () => {
+    const h = harness();
+    const sid = await h.start();
+    expect((await voice(h, sid, 100)).status).toBe(404);
   });
 });
 

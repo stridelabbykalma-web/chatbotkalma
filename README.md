@@ -132,6 +132,14 @@ npm run dev
 
 Abre `http://localhost:8787/reservas/`.
 
+Para probar sin cuenta de Cloudflare, usa `npm run dev:local`: arranca igual pero sin Whisper, así que el micrófono no aparece. `npm run dev` incluye Whisper y necesita una cuenta de Cloudflare (`npx wrangler login`).
+
+### Voz
+
+- **Notas de voz:** el paciente pulsa el micrófono, habla (1 minuto como máximo) y el audio se transcribe con Whisper en Workers AI (`@cf/openai/whisper-large-v3-turbo`, detecta castellano, catalán e inglés). En el chat aparece "🎤 lo que se ha entendido" y el bot responde igual que a un texto. El audio no se guarda ni se registra; solo queda el texto, como en un mensaje escrito. Necesita el binding `[ai]` de `wrangler.toml` (incluido en el plan gratuito, con un límite diario de uso).
+- **Escuchar las respuestas:** cada mensaje del bot tiene un altavoz que lo lee con la voz del propio móvil (Web Speech). No se envía nada a ningún servidor.
+- **Privacidad:** el aviso lo menciona. Workers AI es Cloudflare, que ya es encargado del tratamiento por el alojamiento.
+
 ### Desplegar en Cloudflare
 
 1. Cuenta de Cloudflare (plan gratuito) y el dominio gestionado en Cloudflare. Si la web está en otro proveedor, usa un subdominio, por ejemplo `reservas.kalma…`, apuntado a Cloudflare.

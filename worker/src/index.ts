@@ -14,6 +14,7 @@ export { SessionDO } from "./store";
 
 export interface Env {
   ASSETS: Fetcher;
+  AI?: Ai;
   SESSIONS: DurableObjectNamespace;
   // secrets (wrangler secret put ...)
   ANTHROPIC_API_KEY?: string;
@@ -32,6 +33,19 @@ export interface Env {
 }
 
 let app: ReturnType<typeof createApp> | undefined;
+
+function toBase64(buf: ArrayBuffer): string {
+  const bytes = new Uint8Array(buf);
+  let bin = "";
+  for (let i = 0; i < bytes.length; i += 0x8000) bin += String.fromCharCode(...bytes.subarray(i, i + 0x8000));
+  return btoa(bin);
+}
+
+/** Workers AI Whisper: Spanish, Catalan and English, language detected automatically. */
+async function transcribeWithWhisper(ai: Ai, audio: ArrayBuffer): Promise<string> {
+  const out = (await (ai as any).run("@cf/openai/whisper-large-v3-turbo", { audio: toBase64(audio) })) as { text?: string };
+  return (out?.text ?? "").trim();
+}
 
 function randomId(): string {
   const bytes = new Uint8Array(24);
@@ -69,16 +83,17 @@ function build(env: Env) {
     verifyTurnstile: (token, ip) => verifyTurnstile(env.TURNSTILE_SECRET, token, ip),
     turnstileSiteKey: env.TURNSTILE_SITE_KEY || undefined,
     allowedOrigins: (env.ALLOWED_ORIGINS ?? "").split(",").map((s) => s.trim()).filter(Boolean),
+    transcribe: env.AI ? (audio) => transcribeWithWhisper(env.AI!, audio) : undefined,
   };
   return createApp(deps);
 }
 
 const PAGE_HEADERS: Record<string, string> = {
   "Content-Security-Policy":
-    "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data:; connect-src 'self'; frame-src https://challenges.cloudflare.com https://www.docfav.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
+    "default-src 'self'; script-src 'self' https://challenges.cloudflare.com; style-src 'self'; img-src 'self' data:; media-src 'self' blob:; connect-src 'self'; frame-src https://challenges.cloudflare.com https://www.docfav.com; base-uri 'none'; form-action 'none'; frame-ancestors 'none'",
   "X-Content-Type-Options": "nosniff",
   "Referrer-Policy": "no-referrer",
-  "Permissions-Policy": "camera=(), microphone=(), geolocation=()",
+  "Permissions-Policy": "camera=(), microphone=(self), geolocation=()",
 };
 
 export default {

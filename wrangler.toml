@@ -11,6 +11,10 @@ directory = "./web"
 binding = "ASSETS"
 run_worker_first = true
 
+# Workers AI: Whisper para transcribir las notas de voz
+[ai]
+binding = "AI"
+
 [[durable_objects.bindings]]
 name = "SESSIONS"
 class_name = "SessionDO"
