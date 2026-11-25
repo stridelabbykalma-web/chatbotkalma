@@ -8,9 +8,9 @@
     ],
     "address": "Rambla Onze de Setembre, 88, 17244 Cassà de la Selva (Girona)",
     "maps_url": "",
-    "phone": "",
-    "whatsapp": "",
-    "email": "",
+    "phone": "663 07 75 78",
+    "whatsapp": "+34 663 07 75 78",
+    "email": "centrekalma@gmail.com",
     "hours": {
       "es": "",
       "ca": "",
@@ -46,8 +46,8 @@
     "policy_url": ""
   },
   "notify": {
-    "to_email": "",
-    "from_email": "",
+    "to_email": "centrekalma@gmail.com",
+    "from_email": "centrekalma@gmail.com",
     "from_name": "Chat de reservas Kalma"
   },
   "docfav": {

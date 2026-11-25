@@ -30,7 +30,10 @@ describe("validación", () => {
 describe("marcadores y guardas", () => {
   const cfg = loadConfig();
   it("si falta un dato, se borra la frase entera (nunca 'llama al consúltalo con el equipo')", () => {
-    expect(renderPlaceholders("Claro. Llama al {{telefono}} cuando quieras. ¿Te busco cita?", cfg, {}, "es")).toBe("Claro. ¿Te busco cita?");
+    const noPhone = structuredClone(cfg);
+    noPhone.settings.center.phone = "";
+    expect(renderPlaceholders("Claro. Llama al {{telefono}} cuando quieras. ¿Te busco cita?", noPhone, {}, "es")).toBe("Claro. ¿Te busco cita?");
+    expect(renderPlaceholders("Llama al {{telefono}}.", cfg, {}, "es")).toBe("Llama al 663 07 75 78.");
     expect(renderPlaceholders("{{inventado}}", cfg, {}, "en")).toBe("");
     expect(renderPlaceholders("Estamos en {{direccion}}.", cfg, {}, "ca")).toBe(`Estamos en ${cfg.settings.center.address}.`);
   });
