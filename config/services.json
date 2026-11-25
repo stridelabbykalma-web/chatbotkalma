@@ -45,9 +45,9 @@
       "bookable_online": true,
       "requires_review": true,
       "price_label": {
-        "es": "a cargo de CatSalut (si tienes derivación del CAP; pendiente de revisar)",
-        "ca": "a càrrec de CatSalut (si tens derivació del CAP; pendent de revisar)",
-        "en": "paid by CatSalut (if you have a CAP referral; pending review)"
+        "es": "a cargo de CatSalut si tienes la derivación del CAP",
+        "ca": "a càrrec de CatSalut si tens la derivació del CAP",
+        "en": "paid by CatSalut if you have a CAP referral"
       },
       "price_eur": null,
       "duration_min": null,

@@ -262,7 +262,7 @@ describe("10. Intento de manipulación", () => {
   it("no existe ninguna vía para leer citas o datos de otros pacientes", () => {
     const params = toolDefinitions(false).flatMap((t) => Object.keys((t.input_schema as any).properties ?? {}));
     expect(params.sort()).toEqual(
-      ["date_from", "date_to", "options", "part_of_day", "reason", "service_id", "topic", "weekdays"].sort(),
+      ["date_from", "date_to", "options", "part_of_day", "reason", "service_id", "slot_label", "topic", "weekdays"].sort(),
     );
   });
 
@@ -469,7 +469,7 @@ describe("CatSalut: pendiente de revisión y aviso al centro", () => {
     const sid = await h.start();
     h.llm.say("Si tu médico del CAP te ha dado sesiones, la visita va {{precio:catsalut}}.");
     const r = await h.call("/chat", { sessionId: sid, text: "lo cubre la seguridad social?" });
-    expect(r.body.messages[0].text).toBe("Si tu médico del CAP te ha dado sesiones, la visita va a cargo de CatSalut (si tienes derivación del CAP; pendiente de revisar).");
+    expect(r.body.messages[0].text).toBe("Si tu médico del CAP te ha dado sesiones, la visita va a cargo de CatSalut si tienes la derivación del CAP.");
     expect(h.llm.requests[0].system[0].text).toMatch(/# CatSalut/);
   });
 });

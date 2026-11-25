@@ -99,6 +99,11 @@ const T = {
     ca: "No he pogut completar la reserva. No s'ha creat cap cita. Contacta amb el centre i t'ajudarem.",
     en: "I couldn't complete the booking. No appointment was created. Please contact the centre and we'll help you.",
   },
+  booking_failed_notified: {
+    es: "No he podido completar la reserva y no se ha creado ninguna cita. He pasado tus datos al centro y te llamarán para darte hora.",
+    ca: "No he pogut completar la reserva i no s'ha creat cap cita. He passat les teves dades al centre i et trucaran per donar-te hora.",
+    en: "I couldn't complete the booking and no appointment was created. I've passed your details to the centre and they'll call you to arrange a time.",
+  },
   booking_uncertain: {
     es: "No he podido confirmar si la reserva se ha guardado. Para evitar duplicados, el equipo lo revisará y te contactará. También puedes llamar al centro.",
     ca: "No he pogut confirmar si la reserva s'ha desat. Per evitar duplicats, l'equip ho revisarà i et contactarà. També pots trucar al centre.",

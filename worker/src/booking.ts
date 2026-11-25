@@ -481,7 +481,25 @@ export async function confirmBooking(deps: Deps, sessionId: string, token: unkno
       session.contact = undefined;
       return { session, outcome: { messages: [contactMessage(deps, t(lang, "booking_uncertain"))], booked: false, historyNote: "Error al guardar la cita; el equipo lo revisará. No digas que la cita está hecha." } };
     }
-    return { session, outcome: { messages: [contactMessage(deps, t(lang, "booking_failed"))], booked: false, historyNote: "La reserva ha fallado; no se ha creado ninguna cita." } };
+    // Docfav refused it: the patient wanted this slot, so the centre gets their details to call.
+    const sent = await deps.mailer.send({
+      reason: "booking_failed",
+      name: `${contact.firstName} ${contact.lastName}`,
+      phone: contact.phone,
+      email: contact.email,
+      extra: `${slotLabel(slot.from, b.timezone, "es")} · ${serviceName(entry.cfg, "es")} · ${staffName(deps, slot.staffKey)} · Docfav: ${code}`,
+    });
+    session.contact = undefined;
+    return {
+      session,
+      outcome: {
+        messages: [sent ? { text: t(lang, "booking_failed_notified") } : contactMessage(deps, t(lang, "booking_failed"))],
+        booked: false,
+        historyNote: sent
+          ? "La reserva ha fallado y no hay cita; el centro tiene sus datos y le llamará. No digas que está reservada."
+          : "La reserva ha fallado; no se ha creado ninguna cita.",
+      },
+    };
   }
 
   // 4) Success.

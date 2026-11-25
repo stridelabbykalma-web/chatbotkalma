@@ -1,5 +1,5 @@
 import type Anthropic from "@anthropic-ai/sdk";
-import { contactMessage, contactUi, factsFrom, findSlots, getCatalog, labelFor, slotsUi, type Deps } from "./booking";
+import { contactMessage, contactUi, factsFrom, findSlots, getCatalog, labelFor, selectSlot, slotsUi, type Deps } from "./booking";
 import { serviceName } from "./config";
 import { t } from "./i18n";
 import type { LLM } from "./llm";
@@ -33,6 +33,16 @@ export function toolDefinitions(portalMode: boolean): Anthropic.Beta.BetaTool[] 
         type: "object",
         properties: { options: { type: "array", items: { type: "string" }, minItems: 2, maxItems: 6 } },
         required: ["options"],
+        additionalProperties: false,
+      },
+    },
+    {
+      name: "choose_slot",
+      description: "Cuando el paciente elige por escrito uno de los huecos que ya se le han mostrado (\"el martes a las 11\"), ábrelo por él: pasa la etiqueta exacta del hueco tal como la devolvió get_availability. Solo abre el formulario de datos; no reserva nada.",
+      input_schema: {
+        type: "object",
+        properties: { slot_label: { type: "string", description: "Etiqueta exacta, p. ej. \"Martes 15/12 a las 11:00\"" } },
+        required: ["slot_label"],
         additionalProperties: false,
       },
     },
@@ -152,6 +162,13 @@ async function runTool(deps: Deps, session: SessionState, name: string, input: R
       const url = deps.cfg.settings.booking.portal_url;
       if (!url) return { result: { error: "portal_not_configured" }, isError: true };
       return { result: { shown: true }, ui: { type: "portal", url } };
+    }
+    case "choose_slot": {
+      const wanted = String(input.slot_label ?? "").trim().toLowerCase();
+      const slot = Object.values(session.offered).find((s) => labelFor(deps, s, lang).toLowerCase() === wanted);
+      if (!slot) return { result: { error: "slot_not_offered", offered: Object.values(session.offered).map((s) => labelFor(deps, s, lang)) }, isError: true };
+      const [msg] = selectSlot(deps, session, slot.id);
+      return { result: { contact_form_shown: true, note: "El sistema ya le pide sus datos; no los pidas tú." }, ui: msg.ui };
     }
     case "get_availability": {
       if (typeof input.service_id !== "string") return { result: { error: "service_id required" }, isError: true };

@@ -13,6 +13,7 @@ export type NotifyReason =
   | "contact_check"
   | "booking_uncertain"
   | "review_required"
+  | "booking_failed"
   | "other";
 
 export const REASON_LABEL: Record<NotifyReason, string> = {
@@ -26,6 +27,7 @@ export const REASON_LABEL: Record<NotifyReason, string> = {
   contact_check: "Revisar ficha de paciente (posible duplicado o teléfono distinto)",
   booking_uncertain: "Reserva con error: comprobar en Docfav si se creó la cita",
   review_required: "Cita de CatSalut PENDIENTE DE REVISAR: comprobar la derivación del CAP y llamar al paciente",
+  booking_failed: "No se pudo crear la cita en Docfav: llamar al paciente para darle hora",
   other: "Otro motivo",
 };
 

@@ -43,6 +43,13 @@ describe("Docfav Public API v1 client", () => {
     expect(await api.searchClients("x@y.z")).toEqual([{ id: "c2", email: "x@y.z", phone: "+34611111111" }]);
   });
 
+  it("sends pending appointments as \"unconfirmed\" (the API rejects \"pending\")", async () => {
+    const f = fakeFetch([ok([{ id: "appt-1" }])]);
+    const api = new DocfavApi("k", CLINIC, CAL, f.fn);
+    await api.createAppointment({ clientId: "c1", serviceId: "s1", staffCalendarId: "sc1", from: "a", to: "b", note: "n", behaviour: "pending", sendReminder: true });
+    expect(JSON.parse(f.calls[0].init.body as string).behaviour).toBe("unconfirmed");
+  });
+
   it("retries a failed read once", async () => {
     const f = fakeFetch([{ status: 503, body: { data: null, errors: [{ code: "API_DISABLED" }] } }, ok({ available: true })]);
     const api = new DocfavApi("k", CLINIC, CAL, f.fn);

@@ -170,7 +170,9 @@ export class DocfavApi implements DocfavClient {
           { service: a.serviceId, back_office_staff_calendar: a.staffCalendarId, from: a.from, to: a.to, note: a.note },
         ],
         send_reminder: a.sendReminder,
-        behaviour: a.behaviour,
+        // The docs list "pending", but the live API rejects it (invalid_behavior); "unconfirmed"
+        // is the agenda's "sin confirmar" (checked 25/11/2026).
+        behaviour: a.behaviour === "pending" ? "unconfirmed" : a.behaviour,
         force: false,
       },
     });
