@@ -13,6 +13,8 @@ import { createApp } from "../worker/src/app";
 import { toolDefinitions } from "../worker/src/agent";
 import { loadConfig } from "../worker/src/config";
 import { DocfavMock } from "../worker/src/docfav/mock";
+import { DocfavApi } from "../worker/src/docfav/api";
+import type { DocfavClient, NewAppointment } from "../worker/src/docfav/types";
 import type { LLM, LLMRequest, LLMResponse } from "../worker/src/llm";
 import { MemoryLogger } from "../worker/src/log";
 import { MemoryMailer } from "../worker/src/notify";
@@ -28,7 +30,7 @@ mkdirSync(outDir, { recursive: true });
 const cfg = loadConfig();
 const cal = (k: string) => cfg.settings.staff.find((s) => s.key === k)!.staff_calendar_id;
 const all = ["abraham", "matilde", "jose_antonio"].map(cal);
-const docfav = new DocfavMock(
+const mock = new DocfavMock(
   [
     ["6c8c843b-5e18-4b82-9691-1efec9cabd0b", "Estudio biomecanico de la carrera", 25000, 90, [cal("abraham")]],
     ["a2cf06ac-a659-4fb7-bf67-06e097f17ecf", "Exploración Biomecánica del Pie", 5000, 30, all],
@@ -46,6 +48,27 @@ const docfav = new DocfavMock(
   ].map(([id, name, amountCents, durationMin, staffCalendarIds]) => ({ id, name, amountCents, durationMin, isActive: true, staffCalendarIds }) as any),
   all,
 );
+
+// SIM_REAL=1: the real Docfav (key injected by the proxy). Every appointment created here is
+// recorded and deleted when the conversation ends.
+const real = process.env.SIM_REAL === "1" ? new DocfavApi("proxy-injected", cfg.settings.docfav.clinic_id, cfg.settings.docfav.calendar_id) : null;
+const created: { id: string; from: string; serviceId: string; behaviour: string; note: string }[] = [];
+const docfav: DocfavClient & { appointments?: any[] } = real
+  ? {
+      listServices: () => real.listServices(),
+      getAvailableSlots: (q) => real.getAvailableSlots(q),
+      checkAvailability: (a, b, c) => real.checkAvailability(a, b, c),
+      searchClients: (k) => real.searchClients(k),
+      createClient: (c) => real.createClient(c),
+      listClientAppointments: (a, b, c) => real.listClientAppointments(a, b, c),
+      listAppointments: (a, b) => real.listAppointments(a, b),
+      async createAppointment(a: NewAppointment) {
+        const r = await real.createAppointment(a);
+        created.push({ id: r.id, from: a.from, serviceId: a.serviceId, behaviour: a.behaviour, note: a.note });
+        return r;
+      },
+    }
+  : mock;
 
 // ---------- model bridge ----------
 interface Pending {
@@ -214,8 +237,22 @@ async function patient(action: string, b: any): Promise<string> {
     case "end": {
       done = true;
       transcript.push("PACIENTE: [se va]");
-      const appts = docfav.appointments.map((a) => `${slotLabel(a.from, "Europe/Madrid", "es")} · servicio ${a.serviceId} · nota "${a.note}"`);
-      writeFileSync(`${outDir}/transcript.txt`, transcript.join("\n") + `\n\n== Citas creadas: ${appts.length ? appts.join(" ; ") : "ninguna"}\n== Emails al centro: ${mailer.sent.map((m) => m.subject).join(" ; ") || "ninguno"}\n`);
+      const list = real ? created : mock.appointments;
+      const appts = list.map((a: any) => `${slotLabel(a.from, "Europe/Madrid", "es")} · servicio ${a.serviceId} · estado ${a.behaviour} · nota "${a.note}"`);
+      let cleanup = "";
+      if (real) {
+        const results: string[] = [];
+        for (const c of created) {
+          try {
+            await real.deleteAppointment(c.id);
+            results.push(`borrada ${c.id}`);
+          } catch (e: any) {
+            results.push(`NO BORRADA ${c.id}: ${e?.code ?? e}`);
+          }
+        }
+        cleanup = `\n== Limpieza en Docfav: ${results.join(" ; ") || "nada que borrar"}`;
+      }
+      writeFileSync(`${outDir}/transcript.txt`, transcript.join("\n") + `\n\n== Citas creadas: ${appts.length ? appts.join(" ; ") : "ninguna"}\n== Emails al centro: ${mailer.sent.map((m) => `${m.subject} | ${m.text.replace(/\n/g, " / ")}`).join(" ;; ") || "ninguno"}${cleanup}\n`);
       if (waiter) { waiter(null); waiter = null; }
       return "fin";
     }

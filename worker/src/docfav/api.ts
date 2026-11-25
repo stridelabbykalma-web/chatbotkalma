@@ -26,7 +26,7 @@ export class DocfavApi implements DocfavClient {
     private slotsAreLocal = true,
   ) {}
 
-  private async request<T>(method: "GET" | "POST", path: string, opts: { query?: Record<string, string | undefined>; body?: unknown } = {}): Promise<T> {
+  private async request<T>(method: "GET" | "POST" | "DELETE", path: string, opts: { query?: Record<string, string | undefined>; body?: unknown } = {}): Promise<T> {
     const url = new URL(`${BASE}/backofficeclinics/${this.clinicId}${path}`);
     for (const [k, v] of Object.entries(opts.query ?? {})) if (v !== undefined) url.searchParams.set(k, v);
     const attempts = method === "GET" ? 2 : 1;
@@ -114,8 +114,10 @@ export class DocfavApi implements DocfavClient {
   }
 
   async searchClients(keyword: string): Promise<DfClientHit[]> {
-    const data = await this.request<any[]>("GET", "/clients/autocomplete", { query: { keyword, limit: "20" } });
-    return data.map((c) => ({ id: c.id, email: c.email ?? null, phone: c.telephone ?? c.phone ?? null }));
+    // The docs show a plain array, but the live API returns {items, total}: accept both.
+    const data = await this.request<any>("GET", "/clients/autocomplete", { query: { keyword, limit: "20" } });
+    const items: any[] = Array.isArray(data) ? data : Array.isArray(data?.items) ? data.items : [];
+    return items.map((c) => ({ id: c.id, email: c.email ?? null, phone: c.phone ?? c.telephone ?? null }));
   }
 
   async createClient(c: NewClient): Promise<{ id: string }> {
@@ -152,6 +154,11 @@ export class DocfavApi implements DocfavClient {
       start = stop + 1000;
     }
     return out;
+  }
+
+  /** Not available to the chatbot: used only by test tooling to clean up its own bookings. */
+  async deleteAppointment(id: string): Promise<void> {
+    await this.request("DELETE", `/appointments/${id}`);
   }
 
   async createAppointment(a: NewAppointment): Promise<{ id: string }> {

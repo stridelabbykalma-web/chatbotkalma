@@ -36,6 +36,13 @@ describe("Docfav Public API v1 client", () => {
     expect(r[0].slots[0]).toEqual({ from: "2026-11-26T08:00:00Z", to: "2026-11-26T08:15:00Z", available: true });
   });
 
+  it("client search accepts the live {items, total} shape and the documented array", async () => {
+    const f = fakeFetch([ok({ items: [{ id: "c1", email: "a@b.c", phone: "+34600000000" }], total: 1 }), ok([{ id: "c2", email: "x@y.z", telephone: "+34611111111" }])]);
+    const api = new DocfavApi("k", CLINIC, CAL, f.fn);
+    expect(await api.searchClients("a@b.c")).toEqual([{ id: "c1", email: "a@b.c", phone: "+34600000000" }]);
+    expect(await api.searchClients("x@y.z")).toEqual([{ id: "c2", email: "x@y.z", phone: "+34611111111" }]);
+  });
+
   it("retries a failed read once", async () => {
     const f = fakeFetch([{ status: 503, body: { data: null, errors: [{ code: "API_DISABLED" }] } }, ok({ available: true })]);
     const api = new DocfavApi("k", CLINIC, CAL, f.fn);
