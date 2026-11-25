@@ -2,14 +2,11 @@ name = "kalma-reservas"
 main = "worker/src/index.ts"
 compatibility_date = "2026-11-01"
 compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+preview_urls = false
 
 # El chat se sirve en https://TU-DOMINIO/reservas/ (ver README: rutas).
 # routes = [{ pattern = "kalma.example.com/reservas*", zone_name = "kalma.example.com" }]
-
-[assets]
-directory = "./web"
-binding = "ASSETS"
-run_worker_first = true
 
 # Workers AI: Whisper para transcribir las notas de voz
 [ai]
@@ -25,7 +22,7 @@ new_sqlite_classes = ["SessionDO"]
 
 [[rules]]
 type = "Text"
-globs = ["**/*.md"]
+globs = ["**/*.md", "**/*.html", "**/*.css", "**/web/app.js"]
 fallthrough = true
 
 [vars]

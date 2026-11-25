@@ -146,6 +146,12 @@ Para probar sin cuenta de Cloudflare, usa `npm run dev:local`: arranca igual per
 - **Escuchar las respuestas:** cada mensaje del bot tiene un altavoz que lo lee con la voz del propio móvil (Web Speech). No se envía nada a ningún servidor.
 - **Privacidad:** el aviso lo menciona. Workers AI es Cloudflare, que ya es encargado del tratamiento por el alojamiento.
 
+### Versión de prueba desplegada
+
+- Dirección: https://kalma-reservas.stridelabkalma.workers.dev/reservas/ (cuenta de Cloudflare de Stride Lab, subdominio `stridelabkalma`).
+- Se despliega con `DRY_RUN = "true"`: lee la agenda real pero no crea citas ni fichas.
+- La página (HTML, CSS y JS) va dentro del propio Worker (`worker/src/static.ts`), sin subida de assets aparte.
+
 ### Desplegar en Cloudflare
 
 1. Cuenta de Cloudflare (plan gratuito) y el dominio gestionado en Cloudflare. Si la web está en otro proveedor, usa un subdominio, por ejemplo `reservas.kalma…`, apuntado a Cloudflare.

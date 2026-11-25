@@ -8,12 +8,12 @@ import { AnthropicLLM } from "./llm";
 import { consoleLogger } from "./log";
 import { BrevoMailer, noopMailer } from "./notify";
 import { DurableStore } from "./store";
+import { STATIC_FILES } from "./static";
 import { verifyTurnstile } from "./turnstile";
 
 export { SessionDO } from "./store";
 
 export interface Env {
-  ASSETS: Fetcher;
   AI?: Ai;
   SESSIONS: DurableObjectNamespace;
   // secrets (wrangler secret put ...)
@@ -111,11 +111,11 @@ export default {
     }
     if (url.pathname === "/reservas") return Response.redirect(new URL("/reservas/", url).toString(), 301);
     if (url.pathname.startsWith("/reservas/")) {
-      const assetUrl = new URL(url.pathname.slice("/reservas".length) || "/", url);
-      const res = await env.ASSETS.fetch(new Request(assetUrl.toString(), req));
-      const out = new Response(res.body, res);
-      for (const [k, v] of Object.entries(PAGE_HEADERS)) out.headers.set(k, v);
-      return out;
+      const file = STATIC_FILES[url.pathname.slice("/reservas".length) || "/"];
+      if (!file || req.method !== "GET") return new Response("Not found", { status: 404 });
+      return new Response(file.body, {
+        headers: { "Content-Type": file.type, "Cache-Control": "no-cache", ...PAGE_HEADERS },
+      });
     }
     return new Response("Not found", { status: 404 });
   },
